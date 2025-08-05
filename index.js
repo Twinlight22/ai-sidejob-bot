@@ -1,8 +1,6 @@
-
-import 'dotenv/config';
-const express = require('express');
-const { Client, middleware } = require('@line/bot-sdk');
-require('dotenv').config();
+import express from 'express';
+import { config as dotenvConfig } from 'dotenv';
+import { Client, middleware } from '@line/bot-sdk';
 
 const config = {
   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
