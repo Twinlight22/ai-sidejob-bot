@@ -1,7 +1,6 @@
 {
   "name": "ai副業ナビ",
   "version": "0.0.1",
-  "type": "module",
   "scripts": {
     "start": "node index.js",
     "dev": "vite",
