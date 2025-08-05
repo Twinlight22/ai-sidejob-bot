@@ -57,46 +57,53 @@ const config = {
 const client = new Client(config);
 const app = express();
 
-// ⚠️ middlewareの前に express.json() は使わないこと！
+// 🚫 middlewareより前に express.json() は絶対に書かない
 
+// ✅ イベントハンドラ（エラー検出用try-catch付き）
 async function handleEvent(event) {
   if (event.type !== 'message' || event.message.type !== 'text') {
     return Promise.resolve(null);
   }
 
   if (event.message.text === '診断') {
-    await client.replyMessage(event.replyToken, {
-      type: 'text',
-      text: 'Q1：副業に使える時間はどのくらい？',
-      quickReply: {
-        items: [
-          {
-            type: 'action',
-            action: {
-              type: 'message',
-              label: '毎日1時間',
-              text: '毎日1時間'
+    try {
+      await client.replyMessage(event.replyToken, {
+        type: 'text',
+        text: 'Q1：副業に使える時間はどのくらい？',
+        quickReply: {
+          items: [
+            {
+              type: 'action',
+              action: {
+                type: 'message',
+                label: '毎日1時間',
+                text: '毎日1時間'
+              }
             }
-          }
-        ]
-      }
-    });
+          ]
+        }
+      });
+    } catch (err) {
+      console.error('❌ replyMessageでエラー:', err.originalError || err.message || err);
+    }
     return Promise.resolve(null);
   }
 
   return Promise.resolve(null);
 }
 
+// ✅ Webhookエンドポイント（署名検証あり）
 app.post('/webhook', middleware(config), async (req, res) => {
   try {
     const results = await Promise.all(req.body.events.map(handleEvent));
     res.json(results);
   } catch (err) {
-    console.error('❌ Webhook handler error:', err);
+    console.error('❌ Webhook handler error:', err.message || err);
     res.status(500).end();
   }
 });
 
+// ✅ ポート指定（Render対応）
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`✅ 本番Bot起動完了 on port ${port}`);
