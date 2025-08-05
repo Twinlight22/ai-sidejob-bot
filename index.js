@@ -1,5 +1,5 @@
+iimport 'dotenv/config';
 import express from 'express';
-import { config as dotenvConfig } from 'dotenv';
 import { Client, middleware } from '@line/bot-sdk';
 
 const config = {
@@ -10,18 +10,22 @@ const config = {
 const client = new Client(config);
 const app = express();
 
+app.use(express.json()); // ←★ここが重要！
+
 app.post('/webhook', middleware(config), async (req, res) => {
-  Promise
-    .all(req.body.events.map(handleEvent))
-    .then((result) => res.json(result))
-    .catch((err) => {
-      console.error(err);
-      res.status(500).end();
-    });
+  try {
+    const results = await Promise.all(req.body.events.map(handleEvent));
+    res.json(results);
+  } catch (err) {
+    console.error('❌ Error in /webhook handler:', err);
+    res.status(500).end();
+  }
 });
 
 async function handleEvent(event) {
-  if (event.type !== 'message' || event.message.type !== 'text') return Promise.resolve(null);
+  if (event.type !== 'message' || event.message.type !== 'text') {
+    return Promise.resolve(null);
+  }
 
   if (event.message.text === '診断') {
     return client.replyMessage(event.replyToken, {
@@ -57,11 +61,8 @@ async function handleEvent(event) {
       },
     });
   }
+
+  return Promise.resolve(null);
 }
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`LINE bot is running on port ${port}`);
-});
-
-
+const po
