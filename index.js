@@ -43,6 +43,8 @@
 
 
 
+
+// index.js
 require('dotenv').config();
 const express = require('express');
 const { Client, middleware } = require('@line/bot-sdk');
@@ -55,7 +57,7 @@ const config = {
 const client = new Client(config);
 const app = express();
 
-// 🚫 express.json() は使わない（署名検証のため）
+// ⚠️ middlewareの前に express.json() は使わないこと！
 
 async function handleEvent(event) {
   if (event.type !== 'message' || event.message.type !== 'text') {
@@ -75,26 +77,11 @@ async function handleEvent(event) {
               label: '毎日1時間',
               text: '毎日1時間'
             }
-          },
-          {
-            type: 'action',
-            action: {
-              type: 'message',
-              label: '週に3日',
-              text: '週に3日'
-            }
-          },
-          {
-            type: 'action',
-            action: {
-              type: 'message',
-              label: '土日だけ',
-              text: '土日だけ'
-            }
           }
         ]
       }
     });
+    return Promise.resolve(null);
   }
 
   return Promise.resolve(null);
