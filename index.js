@@ -11,6 +11,9 @@ const config = {
 const client = new Client(config);
 const app = express();
 
+// ❌ 削除：express.json() を使うとLINEの署名検証が失敗する
+// app.use(express.json());
+
 // 📌 handleEvent 関数はここで1回だけ定義！
 async function handleEvent(event) {
   if (event.type !== 'message' || event.message.type !== 'text') {
@@ -67,4 +70,7 @@ app.post('/webhook', middleware(config), async (req, res) => {
 });
 
 // ✅ ポート指定（Renderでは PORT を使う）
-const port = pr
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`✅ 副業Bot起動完了 on port ${port}`);
+});
