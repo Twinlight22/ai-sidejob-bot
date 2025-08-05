@@ -1,31 +1,31 @@
-// index.js
-require('dotenv').config();
-const express = require('express');
-const { Client, middleware } = require('@line/bot-sdk');
+// // index.js
+// require('dotenv').config();
+// const express = require('express');
+// const { Client, middleware } = require('@line/bot-sdk');
 
-const config = {
-  channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
-  channelSecret: process.env.LINE_CHANNEL_SECRET,
-};
+// const config = {
+//   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
+//   channelSecret: process.env.LINE_CHANNEL_SECRET,
+// };
 
-const client = new Client(config);
-const app = express();
+// const client = new Client(config);
+// const app = express();
 
-// 🚫 middleware(config)より前に app.use(express.json()) を絶対に書かない！
+// // 🚫 middleware(config)より前に app.use(express.json()) を絶対に書かない！
 
-// ✅ Webhookエンドポイント（署名検証込み）
-app.post('/webhook', middleware(config), async (req, res) => {
-  try {
-    const results = await Promise.all(req.body.events.map(async (event) => {
-      if (event.type === 'message' && event.message.type === 'text') {
-        if (event.message.text === '診断') {
-          await client.replyMessage(event.replyToken, {
-            type: 'text',
-            text: '診断を開始します！',
-          });
-        }
-      }
-      return Promise.resolve(null);
+// // ✅ Webhookエンドポイント（署名検証込み）
+// app.post('/webhook', middleware(config), async (req, res) => {
+//   try {
+//     const results = await Promise.all(req.body.events.map(async (event) => {
+//       if (event.type === 'message' && event.message.type === 'text') {
+//         if (event.message.text === '診断') {
+//           await client.replyMessage(event.replyToken, {
+//             type: 'text',
+//             text: '診断を開始します！',
+//           });
+//         }
+//       }
+//       return Promise.resolve(null);
 //     }));
 //     res.json(results);
 //   } catch (err) {
