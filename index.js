@@ -65,3 +65,16 @@ async function handleEvent(event) {
   return Promise.resolve(null);
 }
 
+function handleEvent(event) {
+  if (event.type === 'message' && event.message.type === 'text') {
+    return client.replyMessage(event.replyToken, {
+      type: 'text',
+      text: `あなたのメッセージ: ${event.message.text}`,
+    });
+  }
+
+  // それ以外のイベントには何もしない
+  return Promise.resolve(null);
+}
+
+
