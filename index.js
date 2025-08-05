@@ -43,33 +43,62 @@
 
 
 
-
-// index.js
 require('dotenv').config();
 const express = require('express');
+const { Client, middleware } = require('@line/bot-sdk');
 
+const config = {
+  channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
+  channelSecret: process.env.LINE_CHANNEL_SECRET,
+};
+
+const client = new Client(config);
 const app = express();
 
-// 署名検証なし。JSONボディパースだけ有効にする（LINEからは application/json で送られる）
-app.use(express.json());
+// 🚫 express.json() 絶対NG！
 
-// 🚨 Webhookの中で環境変数をコンソールに出力して即200返す
-app.post('/webhook', (req, res) => {
-  console.log('✅ Webhook受信！');
-  console.log('👉 LINE_CHANNEL_SECRET:', process.env.LINE_CHANNEL_SECRET || 'undefined');
-  console.log('👉 LINE_CHANNEL_ACCESS_TOKEN:', process.env.LINE_CHANNEL_ACCESS_TOKEN || 'undefined');
-  res.sendStatus(200); // とにかく成功を返す
-});
+async function handleEvent(event) {
+  if (event.type !== 'message' || event.message.type !== 'text') {
+    return Promise.resolve(null);
+  }
 
-// 通常の確認用GETルート（ブラウザで確認可）
-app.get('/env-test', (req, res) => {
-  res.json({
-    LINE_CHANNEL_SECRET: process.env.LINE_CHANNEL_SECRET || 'undefined',
-    LINE_CHANNEL_ACCESS_TOKEN: process.env.LINE_CHANNEL_ACCESS_TOKEN || 'undefined',
-  });
-});
+  if (event.message.text === '診断') {
+    return client.replyMessage(event.replyToken, {
+      type: 'text',
+      text: 'Q1：副業に使える時間はどのくらい？',
+      quickReply: {
+        items: [
+          {
+            type: 'action',
+            action: {
+              type: 'message',
+              label: '毎日1時間',
+              text: '毎日1時間',
+            },
+          },
+          {
+            type: 'action',
+            action: {
+              type: 'message',
+              label: '週に3日',
+              text: '週に3日',
+            },
+          },
+          {
+            type: 'action',
+            action: {
+              type: 'message',
+              label: '土日だけ',
+              text: '土日だけ',
+            },
+          },
+        ],
+      },
+    });
+  }
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`✅ 環境変数テストBot起動 on port ${port}`);
-});
+  return Promise.resolve(null);
+}
+
+app.post('/webhook', middleware(co
+
