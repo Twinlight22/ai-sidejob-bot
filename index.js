@@ -10,18 +10,9 @@ const config = {
 const client = new Client(config);
 const app = express();
 
-app.use(express.json()); // ←★ここが重要！
+app.use(express.json()); // JSONパースのために必要！
 
-app.post('/webhook', middleware(config), async (req, res) => {
-  try {
-    const results = await Promise.all(req.body.events.map(handleEvent));
-    res.json(results);
-  } catch (err) {
-    console.error('❌ Error in /webhook handler:', err);
-    res.status(500).end();
-  }
-});
-
+// 📌 handleEvent 関数はここで1回だけ定義！
 async function handleEvent(event) {
   if (event.type !== 'message' || event.message.type !== 'text') {
     return Promise.resolve(null);
@@ -65,16 +56,19 @@ async function handleEvent(event) {
   return Promise.resolve(null);
 }
 
-function handleEvent(event) {
-  if (event.type === 'message' && event.message.type === 'text') {
-    return client.replyMessage(event.replyToken, {
-      type: 'text',
-      text: `あなたのメッセージ: ${event.message.text}`,
-    });
+// Webhookエンドポイント
+app.post('/webhook', middleware(config), async (req, res) => {
+  try {
+    const results = await Promise.all(req.body.events.map(handleEvent));
+    res.json(results);
+  } catch (err) {
+    console.error('❌ Error in /webhook handler:', err);
+    res.status(500).end();
   }
+});
 
-  // それ以外のイベントには何もしない
-  return Promise.resolve(null);
-}
-
-
+// ポート指定と起動ログ（Renderでは process.env.PORT）
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`✅ 副業Bot起動完了 on port ${port}`);
+});
