@@ -1,3 +1,4 @@
+// index.js
 import 'dotenv/config';
 import express from 'express';
 import { Client, middleware } from '@line/bot-sdk';
@@ -9,8 +10,6 @@ const config = {
 
 const client = new Client(config);
 const app = express();
-
-app.use(express.json()); // JSONパースのために必要！
 
 // 📌 handleEvent 関数はここで1回だけ定義！
 async function handleEvent(event) {
@@ -56,7 +55,7 @@ async function handleEvent(event) {
   return Promise.resolve(null);
 }
 
-// Webhookエンドポイント
+// ✅ Webhookエンドポイント（LINE SDKのmiddlewareで署名検証）
 app.post('/webhook', middleware(config), async (req, res) => {
   try {
     const results = await Promise.all(req.body.events.map(handleEvent));
@@ -67,8 +66,5 @@ app.post('/webhook', middleware(config), async (req, res) => {
   }
 });
 
-// ポート指定と起動ログ（Renderでは process.env.PORT）
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`✅ 副業Bot起動完了 on port ${port}`);
-});
+// ✅ ポート指定（Renderでは PORT を使う）
+const port = pr
