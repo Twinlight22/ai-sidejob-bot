@@ -117,18 +117,125 @@
 
 
 
-// index.js
-require('dotenv').config();
-const express = require('express');
-const { Client, middleware } = require('@line/bot-sdk');
+// // index.js
+// require('dotenv').config();
+// const express = require('express');
+// const { Client, middleware } = require('@line/bot-sdk');
 
-const config = {
-  channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
-  channelSecret: process.env.LINE_CHANNEL_SECRET,
-};
+// const config = {
+//   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
+//   channelSecret: process.env.LINE_CHANNEL_SECRET,
+// };
 
-const client = new Client(config);
-const app = express();
+// const client = new Client(config);
+// const app = express();
+
+// async function handleEvent(event) {
+//   if (event.type !== 'message' || event.message.type !== 'text') {
+//     return Promise.resolve(null);
+//   }
+
+//   const userMessage = event.message.text;
+//   console.log('📩 ユーザーの入力:', userMessage);
+
+//   // Q1の出題
+//   if (userMessage === '診断') {
+//     try {
+//       await client.replyMessage(event.replyToken, {
+//         type: 'text',
+//         text: 'Q1：副業に使える時間はどのくらい？',
+//         quickReply: {
+//           items: [
+//             {
+//               type: 'action',
+//               action: {
+//                 type: 'message',
+//                 label: '毎日1時間',
+//                 text: '毎日1時間',
+//               },
+//             },
+//             {
+//               type: 'action',
+//               action: {
+//                 type: 'message',
+//                 label: '週2〜3回',
+//                 text: '週2〜3回',
+//               },
+//             },
+//           ],
+//         },
+//       });
+//     } catch (err) {
+//       console.error('❌ Q1返信エラー:', err.originalError || err.message || err);
+//     }
+//     return Promise.resolve(null);
+//   }
+
+//   // Q1の回答受信 → Q2へ進む
+//   if (userMessage === '毎日1時間' || userMessage === '週2〜3回') {
+//     console.log('✅ Q1の回答を受信:', userMessage);
+
+//     try {
+//       await client.replyMessage(event.replyToken, {
+//         type: 'text',
+//         text: 'Q2：あなたの専門知識を教えてください（複数選択可）',
+//         quickReply: {
+//           items: [
+//             {
+//               type: 'action',
+//               action: {
+//                 type: 'message',
+//                 label: 'ライティング',
+//                 text: 'ライティング',
+//               },
+//             },
+//             {
+//               type: 'action',
+//               action: {
+//                 type: 'message',
+//                 label: 'デザイン',
+//                 text: 'デザイン',
+//               },
+//             },
+//             {
+//               type: 'action',
+//               action: {
+//                 type: 'message',
+//                 label: 'プログラミング',
+//                 text: 'プログラミング',
+//               },
+//             },
+//           ],
+//         },
+//       });
+//     } catch (err) {
+//       console.error('❌ Q2返信エラー:', err.originalError || err.message || err);
+//     }
+
+//     return Promise.resolve(null);
+//   }
+
+//   // その他の入力（未対応）
+//   return Promise.resolve(null);
+// }
+
+// app.post('/webhook', middleware(config), async (req, res) => {
+//   try {
+//     const results = await Promise.all(req.body.events.map(handleEvent));
+//     res.json(results);
+//   } catch (err) {
+//     console.error('❌ Webhook handler error:', err.message || err);
+//     res.status(500).end();
+//   }
+// });
+
+// const port = process.env.PORT || 3000;
+// app.listen(port, () => {
+//   console.log(`✅ 本番Bot起動完了 on port ${port}`);
+// });
+
+
+
 
 async function handleEvent(event) {
   if (event.type !== 'message' || event.message.type !== 'text') {
@@ -138,8 +245,9 @@ async function handleEvent(event) {
   const userMessage = event.message.text;
   console.log('📩 ユーザーの入力:', userMessage);
 
-  // Q1の出題
   if (userMessage === '診断') {
+    console.log('🔁 Q1を送信します');
+
     try {
       await client.replyMessage(event.replyToken, {
         type: 'text',
@@ -154,82 +262,15 @@ async function handleEvent(event) {
                 text: '毎日1時間',
               },
             },
-            {
-              type: 'action',
-              action: {
-                type: 'message',
-                label: '週2〜3回',
-                text: '週2〜3回',
-              },
-            },
           ],
         },
       });
     } catch (err) {
       console.error('❌ Q1返信エラー:', err.originalError || err.message || err);
     }
-    return Promise.resolve(null);
-  }
-
-  // Q1の回答受信 → Q2へ進む
-  if (userMessage === '毎日1時間' || userMessage === '週2〜3回') {
-    console.log('✅ Q1の回答を受信:', userMessage);
-
-    try {
-      await client.replyMessage(event.replyToken, {
-        type: 'text',
-        text: 'Q2：あなたの専門知識を教えてください（複数選択可）',
-        quickReply: {
-          items: [
-            {
-              type: 'action',
-              action: {
-                type: 'message',
-                label: 'ライティング',
-                text: 'ライティング',
-              },
-            },
-            {
-              type: 'action',
-              action: {
-                type: 'message',
-                label: 'デザイン',
-                text: 'デザイン',
-              },
-            },
-            {
-              type: 'action',
-              action: {
-                type: 'message',
-                label: 'プログラミング',
-                text: 'プログラミング',
-              },
-            },
-          ],
-        },
-      });
-    } catch (err) {
-      console.error('❌ Q2返信エラー:', err.originalError || err.message || err);
-    }
 
     return Promise.resolve(null);
   }
 
-  // その他の入力（未対応）
   return Promise.resolve(null);
 }
-
-app.post('/webhook', middleware(config), async (req, res) => {
-  try {
-    const results = await Promise.all(req.body.events.map(handleEvent));
-    res.json(results);
-  } catch (err) {
-    console.error('❌ Webhook handler error:', err.message || err);
-    res.status(500).end();
-  }
-});
-
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`✅ 本番Bot起動完了 on port ${port}`);
-});
