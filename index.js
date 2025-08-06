@@ -103,4 +103,12 @@ app.post('/webhook', middleware(config), async (req, res) => {
     const results = await Promise.all(req.body.events.map(handleEvent));
     res.json(results);
   } catch (err) {
-    conso
+    console.error('❌ Webhook handler error:', err.message || err);
+    res.status(500).end();
+  }
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`✅ 本番Bot起動完了 on port ${port}`);
+});
