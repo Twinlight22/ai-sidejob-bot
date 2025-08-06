@@ -88,3 +88,19 @@ async function handleEvent(event) {
           ]
         }
       });
+    } catch (err) {
+      console.error('❌ replyMessageでエラー:', err.originalError || err.message || err);
+    }
+
+    return Promise.resolve(null);
+  }
+
+  return Promise.resolve(null);
+}
+
+app.post('/webhook', middleware(config), async (req, res) => {
+  try {
+    const results = await Promise.all(req.body.events.map(handleEvent));
+    res.json(results);
+  } catch (err) {
+    conso
