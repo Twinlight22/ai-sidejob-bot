@@ -64,29 +64,27 @@ async function handleEvent(event) {
 
   if (event.message.text === '診断') {
     try {
-      await client.replyMessage(event.replyToken, [
-        {
-          type: 'text',
-          text: 'Q1：副業に使える時間はどのくらい？',
-          quickReply: {
-            items: [
-              {
-                type: 'action',
-                action: {
-                  type: 'message',
-                  label: '毎日1時間',
-                  text: '毎日1時間',
-                },
-              },
-              {
-                type: 'action',
-                action: {
-                  type: 'message',
-                  label: '週に2〜3回',
-                  text: '週に2〜3回',
-                },
-              },
-            ],
-          },
-        },
-      ]);
+      await client.replyMessage(event.replyToken, {
+        type: 'text',
+        text: 'Q1：副業に使える時間はどのくらい？',
+        quickReply: {
+          items: [
+            {
+              type: 'action',
+              action: {
+                type: 'message',
+                label: '毎日1時間',
+                text: '毎日1時間'
+              }
+            },
+            {
+              type: 'action',
+              action: {
+                type: 'message',
+                label: '週2〜3回',
+                text: '週2〜3回'
+              }
+            }
+          ]
+        }
+      });
