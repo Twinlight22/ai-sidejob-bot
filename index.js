@@ -200,6 +200,13 @@ app.use((req, res, next) => {
 
 
 // JSONボディを使えるように（middleware削除中なので必要）
+// app.use(express.json());
+
+// // ===========================================
+// // 副業診断システム - 完全版color: '#2E8B8B',// 既存の設定部分はそのまま...
+// });
+
+// JSONボディを使えるように（middleware削除中なので必要）
 app.use(express.json());
 
 // ===========================================
@@ -613,7 +620,7 @@ function createDiagnosisQuestionMessage(questionIndex) {
                 : `dq=${questionIndex}&da=${option.value}`
             },
             style: 'primary',
-            color: '#9affed',
+            color: '#ffffff',
             margin: 'sm',
             height: 'sm'
           })),
