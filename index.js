@@ -118,29 +118,29 @@
 
 
 // // index.js
-// require('dotenv').config();
-// const express = require('express');
-// const { Client /* , middleware */ } = require('@line/bot-sdk');
+require('dotenv').config();
+const express = require('express');
+const { Client /* , middleware */ } = require('@line/bot-sdk');
 
-// const config = {
-//   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
-//   channelSecret: process.env.LINE_CHANNEL_SECRET,
-// };
+const config = {
+  channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
+  channelSecret: process.env.LINE_CHANNEL_SECRET,
+};
 
-// // 🔍 .env 読み込み確認
-// console.log('🧪 ACCESS_TOKEN:', config.channelAccessToken?.slice(0, 10) || 'undefined');
-// console.log('🧪 CHANNEL_SECRET:', config.channelSecret?.slice(0, 10) || 'undefined');
+// 🔍 .env 読み込み確認
+console.log('🧪 ACCESS_TOKEN:', config.channelAccessToken?.slice(0, 10) || 'undefined');
+console.log('🧪 CHANNEL_SECRET:', config.channelSecret?.slice(0, 10) || 'undefined');
 
-// const client = new Client(config);
-// const app = express();
+const client = new Client(config);
+const app = express();
 
-// // リクエスト受信ログ（middlewareより前に確認）
-// app.use((req, res, next) => {
-//   console.log(`🔔 リクエスト受信: ${req.method} ${req.url}`);
-//   next();
-// });
+// リクエスト受信ログ（middlewareより前に確認）
+app.use((req, res, next) => {
+  console.log(`🔔 リクエスト受信: ${req.method} ${req.url}`);
+  next();
+});
 
-// // JSONボディを使えるように（middleware削除中なので必要）
+// JSONボディを使えるように（middleware削除中なので必要）
 // app.use(express.json());
 
 // // ✅ Webhook受信確認用エンドポイント（middlewareなし）
@@ -200,7 +200,7 @@
 
 
 // 既存の設定部分はそのまま...
-//});
+// });
 
 // JSONボディを使えるように（middleware削除中なので必要）
 app.use(express.json());
