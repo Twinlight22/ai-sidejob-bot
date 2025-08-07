@@ -210,6 +210,17 @@ app.use(express.json());
 // ===========================================
 
 // 診断データ構造
+color: '#2E8B8B',// 既存の設定部分はそのまま...
+});
+
+// JSONボディを使えるように（middleware削除中なので必要）
+app.use(express.json());
+
+// ===========================================
+// 副業診断システム - 完全版
+// ===========================================
+
+// 診断データ構造
 const CAREERS = {
   '物販': { name: '物販', difficulty: '★★☆', earning: '★★★', description: 'Amazon、メルカリなどでの商品販売' },
   'ライティング': { name: 'ライティング', difficulty: '★☆☆', earning: '★★☆', description: '記事執筆・コンテンツ作成' },
@@ -584,7 +595,7 @@ function createDiagnosisQuestionMessage(questionIndex) {
           align: 'center'
         }
       ],
-      backgroundColor: '#007acc',
+      backgroundColor: '#B8E6E6',
       paddingAll: 'lg'
     },
     body: {
@@ -615,7 +626,8 @@ function createDiagnosisQuestionMessage(questionIndex) {
                 ? `dq=${questionIndex}&da=${option.value}&multi=true`
                 : `dq=${questionIndex}&da=${option.value}`
             },
-            style: index % 2 === 0 ? 'primary' : 'secondary',
+            style: 'primary',
+            color: '#B8E6E6',
             margin: 'sm',
             height: 'sm'
           })),
@@ -674,7 +686,7 @@ function createCareerResultMessage(top3Careers) {
           margin: 'sm'
         }
       ],
-      backgroundColor: '#ff6b35',
+      backgroundColor: '#A0D8D8',
       paddingAll: 'lg'
     },
     body: {
