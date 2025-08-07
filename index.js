@@ -199,10 +199,7 @@ app.use((req, res, next) => {
 
 
 
-// color: '#2E8B8B',// 既存の設定部分はそのまま...
-// });
-
-// // JSONボディを使えるように（middleware削除中なので必要）
+// JSONボディを使えるように（middleware削除中なので必要）
 app.use(express.json());
 
 // ===========================================
@@ -310,8 +307,8 @@ const DIAGNOSIS_QUESTIONS = [
   },
   {
     id: 'Q5',
-    text: 'どんな作業が得意ですか？（複数選択可）',
-    type: 'multiple',
+    text: 'どんな作業が得意ですか？',
+    type: 'single',
     options: [
       { text: 'コツコツ進める作業', value: 'steady_work' },
       { text: 'アイデアや企画の発想', value: 'creative_ideas' },
@@ -483,41 +480,39 @@ function calculateCareerScores(answers) {
     // SNS運用は時間帯制限なし（いつでもOK！）
   }
 
-  // Q5: 適性
-  if (answers.Q5 && Array.isArray(answers.Q5)) {
-    answers.Q5.forEach(aptitude => {
-      switch (aptitude) {
-        case 'steady_work':
-          scores['ライティング'] += 10;
-          scores['ブログ運営'] += 10;
-          scores['Web制作'] += 10;
-          scores['物販'] += 10;
-          break;
-        case 'creative_ideas':
-          scores['スキル販売'] += 10;
-          scores['SNS運用'] += 10;
-          scores['ブログ運営'] += 10;
-          scores['画像生成'] += 10;
-          break;
-        case 'creative_expression':
-          scores['デザイン'] += 10;
-          scores['サムネイル・バナー制作'] += 10;
-          scores['画像生成'] += 10;
-          scores['顔出し動画作成'] += 10;
-          break;
-        case 'communication':
-          scores['SNS運用'] += 10;
-          scores['スキル販売'] += 10;
-          scores['音声編集'] += 10;
-          break;
-        case 'technical_skills':
-          scores['プログラミング'] += 10;
-          scores['動画編集'] += 10;
-          scores['Web制作'] += 10;
-          scores['音声編集'] += 10;
-          break;
-      }
-    });
+  // Q5: 適性（単一選択に変更）
+  if (answers.Q5) {
+    switch (answers.Q5) {
+      case 'steady_work':
+        scores['ライティング'] += 10;
+        scores['ブログ運営'] += 10;
+        scores['Web制作'] += 10;
+        scores['物販'] += 10;
+        break;
+      case 'creative_ideas':
+        scores['スキル販売'] += 10;
+        scores['SNS運用'] += 10;
+        scores['ブログ運営'] += 10;
+        scores['画像生成'] += 10;
+        break;
+      case 'creative_expression':
+        scores['デザイン'] += 10;
+        scores['サムネイル・バナー制作'] += 10;
+        scores['画像生成'] += 10;
+        scores['顔出し動画作成'] += 10;
+        break;
+      case 'communication':
+        scores['SNS運用'] += 10;
+        scores['スキル販売'] += 10;
+        scores['音声編集'] += 10;
+        break;
+      case 'technical_skills':
+        scores['プログラミング'] += 10;
+        scores['動画編集'] += 10;
+        scores['Web制作'] += 10;
+        scores['音声編集'] += 10;
+        break;
+    }
   }
 
   // Q6-1 & Q6-2: PC関連
@@ -582,11 +577,11 @@ function createDiagnosisQuestionMessage(questionIndex) {
           text: `🎯 質問${questionIndex + 1}/8`,
           weight: 'bold',
           size: 'lg',
-          color: '#25babf',
+          color: '#ffffff',
           align: 'center'
         }
       ],
-      backgroundColor: '#B8E6E6',
+      backgroundColor: '#0cc0df',
       paddingAll: 'lg'
     },
     body: {
@@ -618,7 +613,7 @@ function createDiagnosisQuestionMessage(questionIndex) {
                 : `dq=${questionIndex}&da=${option.value}`
             },
             style: 'primary',
-            color: '#71faf3',
+            color: '#9affed',
             margin: 'sm',
             height: 'sm'
           })),
