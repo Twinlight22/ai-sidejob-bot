@@ -203,7 +203,7 @@ app.use((req, res, next) => {
 // });
 
 // JSONボディを使えるように（middleware削除中なので必要）
-app.use(express.json());
+// app.use(express.json());
 
 // ===========================================
 // 副業診断システム - 完全版
