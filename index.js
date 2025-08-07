@@ -199,22 +199,11 @@ app.use((req, res, next) => {
 
 
 
-// 既存の設定部分はそのまま...
-// });
-
-// JSONボディを使えるように（middleware削除中なので必要）
-// app.use(express.json());
-
-// ===========================================
-// 副業診断システム - 完全版
-// ===========================================
-
-// 診断データ構造
 // color: '#2E8B8B',// 既存の設定部分はそのまま...
 // });
 
-// JSONボディを使えるように（middleware削除中なので必要）
-app.use(express.json());
+// // JSONボディを使えるように（middleware削除中なので必要）
+// app.use(express.json());
 
 // ===========================================
 // 副業診断システム - 完全版
@@ -290,8 +279,8 @@ const DIAGNOSIS_QUESTIONS = [
   },
   {
     id: 'Q3',
-    text: '業務経験はありますか？',
-    type: 'single',
+    text: '業務経験はありますか？（複数選択可）',
+    type: 'multiple',
     options: [
       { text: '物販', value: 'sales' },
       { text: 'ライティング', value: 'writing' },
@@ -460,21 +449,23 @@ function calculateCareerScores(answers) {
     });
   }
 
-  // Q3: 業務経験
-  if (answers.Q3 && answers.Q3 !== 'none') {
-    switch (answers.Q3) {
-      case 'sales': scores['物販'] += 100; break;
-      case 'writing': scores['ライティング'] += 100; break;
-      case 'design': scores['デザイン'] += 100; break;
-      case 'video': scores['動画編集'] += 100; break;
-      case 'sns': scores['SNS運用'] += 100; break;
-      case 'note': scores['ブログ運営'] += 100; break;
-      case 'skill_sales': scores['スキル販売'] += 100; break;
-      case 'blog': scores['ブログ運営'] += 100; break;
-      case 'programming': scores['プログラミング'] += 100; break;
-      case 'html_css': scores['Web制作'] += 100; break;
-      case 'material_sales': scores['画像生成'] += 100; break;
-    }
+  // Q3: 業務経験（複数選択対応）
+  if (answers.Q3 && Array.isArray(answers.Q3)) {
+    answers.Q3.forEach(experience => {
+      switch (experience) {
+        case 'sales': scores['物販'] += 100; break;
+        case 'writing': scores['ライティング'] += 100; break;
+        case 'design': scores['デザイン'] += 100; break;
+        case 'video': scores['動画編集'] += 100; break;
+        case 'sns': scores['SNS運用'] += 100; break;
+        case 'note': scores['ブログ運営'] += 100; break;
+        case 'skill_sales': scores['スキル販売'] += 100; break;
+        case 'blog': scores['ブログ運営'] += 100; break;
+        case 'programming': scores['プログラミング'] += 100; break;
+        case 'html_css': scores['Web制作'] += 100; break;
+        case 'material_sales': scores['画像生成'] += 100; break;
+      }
+    });
   }
 
   // Q4: 時間帯・場所制限（修正版）
@@ -591,7 +582,7 @@ function createDiagnosisQuestionMessage(questionIndex) {
           text: `🎯 質問${questionIndex + 1}/8`,
           weight: 'bold',
           size: 'lg',
-          color: '#ffffff',
+          color: '#25babf',
           align: 'center'
         }
       ],
@@ -627,7 +618,7 @@ function createDiagnosisQuestionMessage(questionIndex) {
                 : `dq=${questionIndex}&da=${option.value}`
             },
             style: 'primary',
-            color: '#B8E6E6',
+            color: '#71faf3',
             margin: 'sm',
             height: 'sm'
           })),
@@ -674,14 +665,14 @@ function createCareerResultMessage(top3Careers) {
           text: '🎉 適職診断結果',
           weight: 'bold',
           size: 'xl',
-          color: '#ffffff',
+          color: '#25babf',
           align: 'center'
         },
         {
           type: 'text',
           text: 'あなたにピッタリの副業TOP3',
           size: 'md',
-          color: '#ffffff',
+          color: '#25babf',
           align: 'center',
           margin: 'sm'
         }
@@ -906,6 +897,7 @@ app.post('/webhook', async (req, res) => {
           if (nextQuestionIndex < DIAGNOSIS_QUESTIONS.length) {
             const nextMessage = createDiagnosisQuestionMessage(nextQuestionIndex);
             await client.replyMessage(event.replyToken, nextMessage);
+            continue; // ← 重要：処理を終了
           } else {
             // 診断完了
             const scores = calculateCareerScores(session.answers);
@@ -915,8 +907,8 @@ app.post('/webhook', async (req, res) => {
             diagnosisSessions.delete(userId);
             
             await client.replyMessage(event.replyToken, resultMessage);
+            continue; // ← 重要：処理を終了
           }
-          continue;
         }
       }
 
