@@ -1997,7 +1997,15 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
           label: opt.text,
           data: `dq=${questionIndex}&da=${opt.value}&multi=true`
         }
-      }))
+      })),
+      {
+        type: 'action',
+        action: {
+          type: 'postback',
+          label: '次の質問へ →',
+          data: `dnext=${questionIndex}`
+        }
+      }
     ];
     
     // FlexMessage形式（選択肢はテキスト、次の質問へはボタン）
@@ -2060,15 +2068,11 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
         layout: 'vertical',
         contents: [
           {
-            type: 'button',
-            action: {
-              type: 'postback',
-              label: '次の質問へ →',
-              data: `dnext=${questionIndex}`
-            },
-            style: 'primary',
-            color: '#1563f8',
-            height: 'sm'
+            type: 'text',
+            text: '💡 下のボタンから選択後「次の質問へ」で進んでください',
+            size: 'xs',
+            color: '#888888',
+            align: 'center'
           }
         ],
         paddingAll: 'lg'
