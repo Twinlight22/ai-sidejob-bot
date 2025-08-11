@@ -1514,6 +1514,7 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
   
   // 単一選択の場合は従来通りFlexMessage
   const contents = {
+  const contents = {
     type: 'bubble',
     size: 'giga',
     header: {
@@ -1893,4 +1894,3 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`✅ 本番Bot起動完了 on port ${port}`);
 });
-
