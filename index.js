@@ -1263,6 +1263,46 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
   const question = DIAGNOSIS_QUESTIONS[questionIndex];
   const session = diagnosisSessions.get(userId);
   
+  // 複数選択の場合は最初からQuick Replyで表示
+  if (question.type === 'multiple') {
+    const selectedOptions = session?.answers[question.id] || [];
+    const selectedText = selectedOptions.length > 0 
+      ? question.options.filter(opt => selectedOptions.includes(opt.value)).map(opt => opt.text).join(', ')
+      : 'まだ選択されていません';
+
+    const remainingOptions = question.options.filter(opt => 
+      !selectedOptions.includes(opt.value)
+    );
+
+    const quickReplyItems = [
+      ...remainingOptions.map(opt => ({
+        type: 'action',
+        action: {
+          type: 'postback',
+          label: opt.text,
+          data: `dq=${questionIndex}&da=${opt.value}&multi=true`
+        }
+      })),
+      {
+        type: 'action',
+        action: {
+          type: 'postback',
+          label: '次の質問へ →',
+          data: `dnext=${questionIndex}`
+        }
+      }
+    ];
+
+    return {
+      type: 'text',
+      text: `🎯 質問${questionIndex + 1}/8\n${question.text}\n\n✅ 選択済み: ${selectedText}\n\n下から選択するか「次の質問へ」を押してください`,
+      quickReply: {
+        items: quickReplyItems
+      }
+    };
+  }
+  
+  // 単一選択の場合は従来通りFlexMessage
   const contents = {
     type: 'bubble',
     size: 'giga',
@@ -1301,45 +1341,24 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
         {
           type: 'box',
           layout: 'vertical',
-          contents: question.options.map((option, index) => {
-            // 選択済みかどうかをチェック
-            const isSelected = session?.answers[question.id]?.includes(option.value);
-            
-            return {
-              type: 'button',
-              action: {
-                type: 'postback',
-                label: isSelected ? `✅ ${option.text}` : option.text,
-                data: question.type === 'multiple' 
-                  ? `dq=${questionIndex}&da=${option.value}&multi=true`
-                  : `dq=${questionIndex}&da=${option.value}`
-              },
-              style: 'primary',
-              color: isSelected ? '#1e90ff' : '#00bfff', // 選択済みは濃い青、未選択は明るい青
-              margin: 'sm',
-              height: 'sm'
-            };
-          }),
+          contents: question.options.map((option, index) => ({
+            type: 'button',
+            action: {
+              type: 'postback',
+              label: option.text,
+              data: `dq=${questionIndex}&da=${option.value}`
+            },
+            style: 'primary',
+            color: '#00bfff',
+            margin: 'sm',
+            height: 'sm'
+          })),
           margin: 'lg',
           spacing: 'sm'
         }
       ],
       paddingAll: 'lg'
-    },
-    footer: question.type === 'multiple' ? {
-      type: 'box',
-      layout: 'vertical',
-      contents: [
-        {
-          type: 'text',
-          text: '💡 複数選択できます',
-          size: 'xs',
-          color: '#888888',
-          align: 'center'
-        }
-      ],
-      paddingAll: 'sm'
-    } : undefined
+    }
   };
 
   return {
@@ -1539,12 +1558,15 @@ app.post('/webhook', async (req, res) => {
 
         const session = diagnosisSessions.get(userId);
         if (!session) {
+          console.log('⚠️ セッションが見つかりません。userId:', userId);
           await client.replyMessage(event.replyToken, {
             type: 'text',
             text: '診断を開始するには「診断」と入力してください。'
           });
           continue;
         }
+
+        console.log('✅ セッション確認OK:', session);
 
         const question = DIAGNOSIS_QUESTIONS[questionIndex];
         
