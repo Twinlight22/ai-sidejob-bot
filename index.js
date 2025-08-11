@@ -1275,7 +1275,7 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
           text: `🎯 質問${questionIndex + 1}/8`,
           weight: 'bold',
           size: 'lg',
-          color: '#0000ff',
+          color: '#ffffff',
           align: 'center'
         }
       ],
@@ -1363,14 +1363,14 @@ function createCareerResultMessage(top3Careers) {
           text: '🎉 適職診断結果',
           weight: 'bold',
           size: 'xl',
-          color: '#0000ff',
+          color: '#ffffff',
           align: 'center'
         },
         {
           type: 'text',
           text: 'あなたにピッタリの副業TOP3',
           size: 'md',
-          color: '#0000ff',
+          color: '#ffffff',
           align: 'center',
           margin: 'sm'
         }
@@ -1560,9 +1560,49 @@ app.post('/webhook', async (req, res) => {
             session.answers[question.id].push(answer);
           }
 
-          // 🔥 選択状態が見えるボタンで再送信！
-          const updatedMessage = createDiagnosisQuestionMessage(questionIndex, userId);
-          await client.replyMessage(event.replyToken, updatedMessage);
+          // 選択済み項目の表示
+          const selectedOptions = question.options.filter(opt => 
+            session.answers[question.id].includes(opt.value)
+          );
+          const selectedText = selectedOptions.length > 0 
+            ? selectedOptions.map(opt => opt.text).join(', ') 
+            : 'まだ選択されていません';
+
+          // 未選択の項目でQuick Reply作成
+          const remainingOptions = question.options.filter(opt => 
+            !session.answers[question.id].includes(opt.value)
+          );
+
+          const quickReplyItems = [
+            // 未選択の選択肢
+            ...remainingOptions.map(opt => ({
+              type: 'action',
+              action: {
+                type: 'postback',
+                label: opt.text,
+                data: `dq=${questionIndex}&da=${opt.value}&multi=true`
+              }
+            })),
+            // 次の質問へボタン
+            {
+              type: 'action',
+              action: {
+                type: 'postback',
+                label: '次の質問へ →',
+                data: `dnext=${questionIndex}`
+              }
+            }
+          ];
+
+          const continueMessage = {
+            type: 'text',
+            text: `✅ 選択済み: ${selectedText}\n\n下から追加で選択するか「次の質問へ」を押してください`,
+            quickReply: {
+              items: quickReplyItems
+            }
+          };
+
+          await client.replyMessage(event.replyToken, continueMessage);
           continue;
         } else {
           // 単一選択の場合
