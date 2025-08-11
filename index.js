@@ -1119,9 +1119,6 @@ function calculateCareerScores(answers) {
         case 'brew':
           scores['動画編集'] += 30;
           break;
-        case 'did':
-          scores['顔出し動画作成'] += 35;
-          break;
         case 'whisper':
           scores['音声編集'] += 25;
           break;
@@ -1239,281 +1236,117 @@ function getTop3Careers(scores) {
     }));
 }
 
-// 診断開始
-function startCareerDiagnosis(userId) {
-  diagnosisSessions.set(userId, {
-    currentQuestion: 0,
-    answers: {}
-  });
-  
-  return createDiagnosisQuestionMessage(0, userId);
-}
-
-// FlexMessage形式の質問メッセージ（選択状態見える化対応！）
-function createDiagnosisQuestionMessage(questionIndex, userId) {
+// 複数選択専用メッセージ作成
+function createMultipleChoiceMessage(questionIndex, userId) {
   const question = DIAGNOSIS_QUESTIONS[questionIndex];
   const session = diagnosisSessions.get(userId);
+  const selectedOptions = session?.answers[question.id] || [];
+  
+  const selectedText = selectedOptions.length > 0 
+    ? question.options.filter(opt => selectedOptions.includes(opt.value)).map(opt => opt.text).join(', ')
+    : 'まだ選択されていません';
+
+  const remainingOptions = question.options.filter(opt => 
+    !selectedOptions.includes(opt.value)
+  );
+
+  const contents = {
+    type: 'bubble',
+    size: 'giga',
+    header: {
+      type: 'box',
+      layout: 'vertical',
+      contents: [
+        {
+          type: 'text',
+          text: `🎯 質問${questionIndex + 1}/8`,
+          weight: 'bold',
+          size: 'lg',
+          color: '#ffffff',
+          align: 'center'
+        }
+      ],
+      backgroundColor: '#1563f8',
+      paddingAll: 'lg'
+    },
+    body: {
+      type: 'box',
+      layout: 'vertical',
+      contents: [
+        {
+          type: 'text',
+          text: question.text,
+          weight: 'bold',
+          size: 'md',
+          wrap: true,
+          color: '#333333'
+        },
+        {
+          type: 'separator',
+          margin: 'lg'
+        },
+        {
+          type: 'text',
+          text: `✅ 選択済み: ${selectedText}`,
+          size: 'sm',
+          color: '#666666',
+          wrap: true,
+          margin: 'lg'
+        }
+      ],
+      paddingAll: 'lg'
+    },
+    footer: {
+      type: 'box',
+      layout: 'vertical',
+      contents: [
+        {
+          type: 'button',
+          action: {
+            type: 'postback',
+            label: '次の質問へ →',
+            data: `dnext=${questionIndex}`
+          },
+          style: 'primary',
+          color: '#00bfff',
+          height: 'sm'
+        }
+      ],
+      paddingAll: 'lg'
+    }
+  };
+
+  const quickReplyItems = remainingOptions.slice(0, 13).map(opt => ({
+    type: 'action',
+    action: {
+      type: 'postback',
+      label: opt.text,
+      data: `dq=${questionIndex}&da=${opt.value}&multi=true`
+    }
+  }));
+
+  return {
+    type: 'flex',
+    altText: question.text,
+    contents,
+    quickReply: quickReplyItems.length > 0 ? {
+      items: quickReplyItems
+    } : undefined
+  };
+}
+
+// 単一選択用メッセージ作成
+function createDiagnosisQuestionMessage(questionIndex, userId) {
+  const question = DIAGNOSIS_QUESTIONS[questionIndex];
   
   console.log(`🔍 質問${questionIndex + 1}: type=${question.type}, id=${question.id}`);
   
-  // 複数選択の場合はタイトルのみFlexMessage、選択肢はQuick Reply
+  // 複数選択の場合は専用関数を使用
   if (question.type === 'multiple') {
-    const selectedOptions = session?.answers[question.id] || [];
-    const selectedText = selectedOptions.length > 0 
-      ? question.options.filter(opt => selectedOptions.includes(opt.value)).map(opt => opt.text).join(', ')
-      : 'まだ選択されていません';
-
-    const remainingOptions = question.options.filter(opt => 
-      !selectedOptions.includes(opt.value)
-    );
-
-    const quickReplyItems = [
-      ...remainingOptions.slice(0, 12).map(opt => ({
-        type: 'action',
-        action: {
-          type: 'postback',
-          label: opt.text,
-          data: `dq=${questionIndex}&da=${opt.value}&multi=true`
-        }
-      }))
-    ];
-    
-    // FlexMessage（タイトル、選択済み表示、次の質問へボタン）
-    const contents = {
-      type: 'bubble',
-      size: 'giga',
-      header: {
-        type: 'box',
-        layout: 'vertical',
-        contents: [
-          {
-            type: 'text',
-            text: `🎯 質問${questionIndex + 1}/8`,
-            weight: 'bold',
-            size: 'lg',
-            color: '#ffffff',
-            align: 'center'
-          }
-        ],
-        backgroundColor: '#1563f8',
-        paddingAll: 'lg'
-      },
-      body: {
-        type: 'box',
-        layout: 'vertical',
-        contents: [
-          {
-            type: 'text',
-            text: question.text,
-            weight: 'bold',
-            size: 'md',
-            wrap: true,
-            color: '#333333'
-          },
-          {
-            type: 'separator',
-            margin: 'lg'
-          },
-          {
-            type: 'text',
-            text: `✅ 選択済み: ${selectedText}`,
-            size: 'sm',
-            color: '#666666',
-            wrap: true,
-            margin: 'lg'
-          }
-        ],
-        paddingAll: 'lg'
-      },
-      footer: {
-        type: 'box',
-        layout: 'vertical',
-        contents: [
-          {
-            type: 'button',
-            action: {
-              type: 'postback',
-              label: '次の質問へ →',
-              data: `dnext=${questionIndex}`
-            },
-            style: 'primary',
-            color: '#00bfff',
-            height: 'sm'
-          }
-        ],
-        paddingAll: 'lg'
-      }
-    }; 'action',
-        action: {
-          type: 'postback',
-          label: opt.text,
-          data: `dq=${questionIndex}&da=${opt.value}&multi=true`
-        }
-      })),
-      {
-        type: 'action',
-        action: {
-          type: 'postback',
-          label: '次の質問へ →',
-          data: `dnext=${questionIndex}`
-        }
-      }
-    ];
-    
-    // FlexMessage（タイトルと選択済み表示のみ）
-    const contents = {
-      type: 'bubble',
-      size: 'giga',
-      header: {
-        type: 'box',
-        layout: 'vertical',
-        contents: [
-          {
-            type: 'text',
-            text: `🎯 質問${questionIndex + 1}/8`,
-            weight: 'bold',
-            size: 'lg',
-            color: '#ffffff',
-            align: 'center'
-          }
-        ],
-        backgroundColor: '#1563f8',
-        paddingAll: 'lg'
-      },
-      body: {
-        type: 'box',
-        layout: 'vertical',
-        contents: [
-          {
-            type: 'text',
-            text: question.text,
-            weight: 'bold',
-            size: 'md',
-            wrap: true,
-            color: '#333333'
-          },
-          {
-            type: 'separator',
-            margin: 'lg'
-          },
-          {
-            type: 'text',
-            text: `✅ 選択済み: ${selectedText}`,
-            size: 'sm',
-            color: '#666666',
-            wrap: true,
-            margin: 'lg'
-          }
-        ],
-        paddingAll: 'lg'
-      }
-    };
-
-    return {
-      type: 'flex',
-      altText: question.text,
-      contents,
-      quickReply: {
-        items: quickReplyItems
-      }
-    };
-  }（選択肢も表示、次の質問へはボタン）
-    const contents = {
-      type: 'bubble',
-      size: 'giga',
-      header: {
-        type: 'box',
-        layout: 'vertical',
-        contents: [
-          {
-            type: 'text',
-            text: `🎯 質問${questionIndex + 1}/8`,
-            weight: 'bold',
-            size: 'lg',
-            color: '#ffffff',
-            align: 'center'
-          }
-        ],
-        backgroundColor: '#1563f8',
-        paddingAll: 'lg'
-      },
-      body: {
-        type: 'box',
-        layout: 'vertical',
-        contents: [
-          {
-            type: 'text',
-            text: question.text,
-            weight: 'bold',
-            size: 'md',
-            wrap: true,
-            color: '#333333'
-          },
-          {
-            type: 'separator',
-            margin: 'lg'
-          },
-          {
-            type: 'text',
-            text: `✅ 選択済み: ${selectedText}`,
-            size: 'sm',
-            color: '#666666',
-            wrap: true,
-            margin: 'lg'
-          },
-          {
-            type: 'box',
-            layout: 'vertical',
-            contents: question.options.map((option) => {
-              const isSelected = selectedOptions.includes(option.value);
-              return {
-                type: 'button',
-                action: {
-                  type: 'postback',
-                  label: isSelected ? `✅ ${option.text}` : option.text,
-                  data: `dq=${questionIndex}&da=${option.value}&multi=true`
-                },
-                style: 'primary',
-                color: isSelected ? '#1e90ff' : '#00bfff',
-                margin: 'sm',
-                height: 'sm'
-              };
-            }),
-            margin: 'lg',
-            spacing: 'sm'
-          }
-        ],
-        paddingAll: 'lg'
-      },
-      footer: {
-        type: 'box',
-        layout: 'vertical',
-        contents: [
-          {
-            type: 'button',
-            action: {
-              type: 'postback',
-              label: '次の質問へ →',
-              data: `dnext=${questionIndex}`
-            },
-            style: 'primary',
-            color: '#00bfff',
-            height: 'sm'
-          }
-        ],
-        paddingAll: 'lg'
-      }
-    };
-
-    return {
-      type: 'flex',
-      altText: question.text,
-      contents
-    };
+    return createMultipleChoiceMessage(questionIndex, userId);
   }
   
   // 単一選択の場合は従来通りFlexMessage
-  const contents = {
   const contents = {
     type: 'bubble',
     size: 'giga',
@@ -1728,6 +1561,16 @@ function createCareerResultMessage(top3Careers) {
   };
 }
 
+// 診断開始
+function startCareerDiagnosis(userId) {
+  diagnosisSessions.set(userId, {
+    currentQuestion: 0,
+    answers: {}
+  });
+  
+  return createDiagnosisQuestionMessage(0, userId);
+}
+
 // ✅ Webhook受信確認用エンドポイント（選択済みボタン対応完全版！）
 app.post('/webhook', async (req, res) => {
   console.log('📩 Webhookリクエストが届きました！');
@@ -1786,7 +1629,7 @@ app.post('/webhook', async (req, res) => {
         const question = DIAGNOSIS_QUESTIONS[questionIndex];
         
         if (isMultiple) {
-          // 複数選択の場合
+          // 複数選択の場合 - 選択状態のみ更新、軽量な確認メッセージ
           if (!session.answers[question.id]) {
             session.answers[question.id] = [];
           }
@@ -1797,49 +1640,14 @@ app.post('/webhook', async (req, res) => {
             session.answers[question.id].push(answer);
           }
 
-          // 選択済み項目の表示
-          const selectedOptions = question.options.filter(opt => 
-            session.answers[question.id].includes(opt.value)
-          );
-          const selectedText = selectedOptions.length > 0 
-            ? selectedOptions.map(opt => opt.text).join(', ') 
-            : 'まだ選択されていません';
-
-          // 未選択の項目でQuick Reply作成
-          const remainingOptions = question.options.filter(opt => 
-            !session.answers[question.id].includes(opt.value)
-          );
-
-          const quickReplyItems = [
-            // 未選択の選択肢
-            ...remainingOptions.map(opt => ({
-              type: 'action',
-              action: {
-                type: 'postback',
-                label: opt.text,
-                data: `dq=${questionIndex}&da=${opt.value}&multi=true`
-              }
-            })),
-            // 次の質問へボタン
-            {
-              type: 'action',
-              action: {
-                type: 'postback',
-                label: '次の質問へ →',
-                data: `dnext=${questionIndex}`
-              }
-            }
-          ];
-
-          const continueMessage = {
+          // 軽量な確認メッセージのみ
+          const selectedCount = session.answers[question.id].length;
+          const confirmMessage = {
             type: 'text',
-            text: `✅ 選択済み: ${selectedText}\n\n下から追加で選択するか「次の質問へ」を押してください`,
-            quickReply: {
-              items: quickReplyItems
-            }
+            text: `✅ ${selectedCount}個選択済み`
           };
 
-          await client.replyMessage(event.replyToken, continueMessage);
+          await client.replyMessage(event.replyToken, confirmMessage);
           continue;
         } else {
           // 単一選択の場合
