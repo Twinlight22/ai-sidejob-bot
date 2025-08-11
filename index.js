@@ -1,4 +1,40 @@
 
+// // 必要なモジュールをインポート
+// const express = require('express');
+// const { Client } = require('@line/bot-sdk');
+
+// const app = express();
+
+// // LINE Bot設定
+// const config = {
+//   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
+//   channelSecret: process.env.LINE_CHANNEL_SECRET,
+// };
+// const client = new Client(config);
+
+// // JSONボディを使えるように（middleware削除中なので必要）
+// app.use(express.json());
+
+// // ===========================================
+// // 副業診断システム - 完全版
+// // ===========================================
+
+// // 診断データ構造
+// const CAREERS = {
+//   '物販': { name: '物販', difficulty: '★★☆', earning: '★★★', description: 'Amazon、メルカリなどでの商品販売' },
+//   'ライティング': { name: 'ライティング', difficulty: '★☆☆', earning: '★★☆', description: '記事執筆・コンテンツ作成' },
+//   'ブログ運営': { name: 'ブログ運営', difficulty: '★★☆', earning: '★★☆', description: '個人ブログでの収益化' },
+//   'SNS運用': { name: 'SNS運用代行', difficulty: '★★☆', earning: '★★★', description: '企業のSNSアカウント運用' },
+//   'スキル販売': { name: 'スキル販売', difficulty: '★☆☆', earning: '★★☆', description: 'ココナラ等でのスキル提供' },
+//   'デザイン': { name: 'デザイン', difficulty: '★★★', earning: '★★★', description: 'ロゴ・バナー等のデザイン制作' },
+//   'サムネイル・バナー制作': { name: 'サムネイル・バナー制作', difficulty: '★★☆', earning: '★★☆', description: 'YouTube等のサムネイル制作' },
+//   '画像生成': { name: '画像生成', difficulty: '★★☆', earning: '★★☆', description: 'AIを使った画像制作・販売' },
+//   '動画編集': { name: '動画編集', difficulty: '★★★', earning: '★★★', description: 'YouTube・企業動画の編集' },
+//   '顔出し動画作成': { name: '顔出し動画作成', difficulty: '★★★', earning: '★★★', description: '教育・エンタメ動画の制作' },
+//   '音声編集': { name: '音声編集', difficulty: '★★☆', earning: '★★☆', description: 'ポッドキャスト・音声コンテンツ制作' },
+//   'Web制作': { name: 'HTML/CSS', difficulty: '★★★', earning: '★★★', description: 'ウェブサイト制作・コーディング' },
+//   'プログラミング': { name: 'プログラミング', difficulty: '★★★★', earning: '★★★★', description: 'アプリ・システム開発' }
+// };
 
 // // 質問データ
 // const DIAGNOSIS_QUESTIONS = [
@@ -41,10 +77,8 @@
 //       { text: 'Midjourney', value: 'midjourney' },
 //       { text: 'DALL·E 3', value: 'dalle3' },
 //       { text: 'Adobe Firefly', value: 'firefly' },
-//       { text: 'Leonardo.Ai', value: 'leonardo' },
+//       { text: 'Leonardo', value: 'leonardo' },
 //       { text: 'Runway', value: 'runway' },
-//       { text: 'Pika Labs', value: 'pika' },
-//       { text: 'D-ID', value: 'did' },
 //       { text: 'Whisper', value: 'whisper' },
 //       { text: 'Brew', value: 'brew' },
 //       { text: 'Canva', value: 'canva' },
@@ -204,7 +238,6 @@
 //           scores['画像生成'] += 30;
 //           break;
 //         case 'runway':
-//         case 'pika':
 //         case 'brew':
 //           scores['動画編集'] += 30;
 //           break;
@@ -335,13 +368,54 @@
 //     answers: {}
 //   });
   
-//   return createDiagnosisQuestionMessage(0);
+//   return createDiagnosisQuestionMessage(0, userId);
 // }
 
-// // FlexMessage形式の質問メッセージ（超カッコいい！）
-// function createDiagnosisQuestionMessage(questionIndex) {
+// // FlexMessage形式の質問メッセージ（選択状態見える化対応！）
+// function createDiagnosisQuestionMessage(questionIndex, userId) {
 //   const question = DIAGNOSIS_QUESTIONS[questionIndex];
+//   const session = diagnosisSessions.get(userId);
   
+//   // 複数選択の場合は最初からQuick Replyで表示
+//   if (question.type === 'multiple') {
+//     const selectedOptions = session?.answers[question.id] || [];
+//     const selectedText = selectedOptions.length > 0 
+//       ? question.options.filter(opt => selectedOptions.includes(opt.value)).map(opt => opt.text).join(', ')
+//       : 'まだ選択されていません';
+
+//     const remainingOptions = question.options.filter(opt => 
+//       !selectedOptions.includes(opt.value)
+//     );
+
+//     const quickReplyItems = [
+//       ...remainingOptions.map(opt => ({
+//         type: 'action',
+//         action: {
+//           type: 'postback',
+//           label: opt.text,
+//           data: `dq=${questionIndex}&da=${opt.value}&multi=true`
+//         }
+//       })),
+//       {
+//         type: 'action',
+//         action: {
+//           type: 'postback',
+//           label: '次の質問へ →',
+//           data: `dnext=${questionIndex}`
+//         }
+//       }
+//     ];
+
+//     return {
+//       type: 'text',
+//       text: `🎯 質問${questionIndex + 1}/8\n${question.text}\n\n✅ 選択済み: ${selectedText}\n\n下から選択するか「次の質問へ」を押してください`,
+//       quickReply: {
+//         items: quickReplyItems
+//       }
+//     };
+//   }
+  
+//   // 単一選択の場合は従来通りFlexMessage
 //   const contents = {
 //     type: 'bubble',
 //     size: 'giga',
@@ -354,7 +428,7 @@
 //           text: `🎯 質問${questionIndex + 1}/8`,
 //           weight: 'bold',
 //           size: 'lg',
-//           color: '#5ce1e6',
+//           color: '#ffffff',
 //           align: 'center'
 //         }
 //       ],
@@ -385,12 +459,10 @@
 //             action: {
 //               type: 'postback',
 //               label: option.text,
-//               data: question.type === 'multiple' 
-//                 ? `dq=${questionIndex}&da=${option.value}&multi=true`
-//                 : `dq=${questionIndex}&da=${option.value}`
+//               data: `dq=${questionIndex}&da=${option.value}`
 //             },
 //             style: 'primary',
-//             color: '#0cc0df',
+//             color: '#00bfff',
 //             margin: 'sm',
 //             height: 'sm'
 //           })),
@@ -399,21 +471,7 @@
 //         }
 //       ],
 //       paddingAll: 'lg'
-//     },
-//     footer: question.type === 'multiple' ? {
-//       type: 'box',
-//       layout: 'vertical',
-//       contents: [
-//         {
-//           type: 'text',
-//           text: '💡 複数選択できます',
-//           size: 'xs',
-//           color: '#888888',
-//           align: 'center'
-//         }
-//       ],
-//       paddingAll: 'sm'
-//     } : undefined
+//     }
 //   };
 
 //   return {
@@ -423,7 +481,7 @@
 //   };
 // }
 
-// // 結果表示メッセージ作成（超豪華！）
+// // 結果表示メッセージ作成（色統一版！）
 // function createCareerResultMessage(top3Careers) {
 //   const contents = {
 //     type: 'bubble',
@@ -437,19 +495,19 @@
 //           text: '🎉 適職診断結果',
 //           weight: 'bold',
 //           size: 'xl',
-//           color: '#5ce1e6',
+//           color: '#ffffff',
 //           align: 'center'
 //         },
 //         {
 //           type: 'text',
 //           text: 'あなたにピッタリの副業TOP3',
 //           size: 'md',
-//           color: '#5ce1e6',
+//           color: '#ffffff',
 //           align: 'center',
 //           margin: 'sm'
 //         }
 //       ],
-//       backgroundColor: '#A0D8D8',
+//       backgroundColor: '#1563f8', // 質問と同じ青に統一！
 //       paddingAll: 'lg'
 //     },
 //     body: {
@@ -572,173 +630,7 @@
 //   };
 // }
 
-// // 決済前確認メッセージ作成
-// function createPaymentConfirmationMessage() {
-//   const contents = {
-//     type: 'bubble',
-//     size: 'kilo',
-//     header: {
-//       type: 'box',
-//       layout: 'vertical',
-//       contents: [
-//         {
-//           type: 'text',
-//           text: '💰 プレミアム診断',
-//           weight: 'bold',
-//           size: 'lg',
-//           color: '#5ce1e6',
-//           align: 'center'
-//         }
-//       ],
-//       backgroundColor: '#1563f8',
-//       paddingAll: 'lg'
-//     },
-//     body: {
-//       type: 'box',
-//       layout: 'vertical',
-//       contents: [
-//         {
-//           type: 'text',
-//           text: 'より詳細な診断をご希望ですか？',
-//           weight: 'bold',
-//           size: 'md',
-//           wrap: true,
-//           color: '#333333',
-//           align: 'center'
-//         },
-//         {
-//           type: 'separator',
-//           margin: 'lg'
-//         },
-//         {
-//           type: 'box',
-//           layout: 'vertical',
-//           contents: [
-//             {
-//               type: 'text',
-//               text: '📋 プレミアム版の特徴',
-//               weight: 'bold',
-//               size: 'sm',
-//               color: '#333333',
-//               margin: 'lg'
-//             },
-//             {
-//               type: 'text',
-//               text: '• AI副業診断（全13職種詳細表示）',
-//               size: 'sm',
-//               color: '#666666',
-//               margin: 'sm'
-//             },
-//             {
-//               type: 'text',
-//               text: '• 診断の採点内容',
-//               size: 'sm',
-//               color: '#666666',
-//               margin: 'xs'
-//             },
-//             {
-//               type: 'text',
-//               text: '• 個別アドバイス付き',
-//               size: 'sm',
-//               color: '#666666',
-//               margin: 'xs'
-//             }
-//           ]
-//         },
-//         {
-//           type: 'separator',
-//           margin: 'lg'
-//         },
-//         {
-//           type: 'text',
-//           text: '💸 料金：1980円（税込）',
-//           weight: 'bold',
-//           size: 'md',
-//           color: '#ff6b35',
-//           align: 'center',
-//           margin: 'lg'
-//         }
-//       ],
-//       paddingAll: 'lg'
-//     },
-//     footer: {
-//       type: 'box',
-//       layout: 'vertical',
-//       contents: [
-//         {
-//           type: 'text',
-//           text: '⚠️ お支払い前に必ずご確認ください',
-//           size: 'xs',
-//           color: '#ff6b35',
-//           align: 'center',
-//           weight: 'bold'
-//         },
-//         {
-//           type: 'box',
-//           layout: 'horizontal',
-//           contents: [
-//             {
-//               type: 'button',
-//               action: {
-//                 type: 'uri',
-//                 label: '📄 特商法',
-//                 uri: 'https://twinlight.netlify.app/tokushoho'
-//               },
-//               style: 'secondary',
-//               height: 'sm',
-//               flex: 1
-//             },
-//             {
-//               type: 'button',
-//               action: {
-//                 type: 'uri',
-//                 label: '🔒 プライバシー',
-//                 uri: 'https://twinlight.netlify.app/privacy-policy'
-//               },
-//               style: 'secondary',
-//               height: 'sm',
-//               flex: 1
-//             }
-//           ],
-//           spacing: 'sm',
-//           margin: 'md'
-//         },
-//         {
-//           type: 'button',
-//           action: {
-//             type: 'postback',
-//             label: '💳 プレミアム診断を購入',
-//             data: 'start_payment'
-//           },
-//           style: 'primary',
-//           color: '#ff6b35',
-//           height: 'sm',
-//           margin: 'md'
-//         },
-//         {
-//           type: 'button',
-//           action: {
-//             type: 'postback',
-//             label: '🔄 無料版で再診断',
-//             data: 'diagnosis_restart'
-//           },
-//           style: 'link',
-//           height: 'sm',
-//           margin: 'sm'
-//         }
-//       ],
-//       paddingAll: 'lg'
-//     }
-//   };
-
-//   return {
-//     type: 'flex',
-//     altText: 'プレミアム診断のご案内',
-//     contents
-//   };
-// }
-
-// // ✅ Webhook受信確認用エンドポイント（完全版に置き換え！）
+// // ✅ Webhook受信確認用エンドポイント（選択済みボタン対応完全版！）
 // app.post('/webhook', async (req, res) => {
 //   console.log('📩 Webhookリクエストが届きました！');
 //   console.log('🧾 リクエストボディ:', JSON.stringify(req.body, null, 2));
@@ -779,12 +671,15 @@
 
 //         const session = diagnosisSessions.get(userId);
 //         if (!session) {
+//           console.log('⚠️ セッションが見つかりません。userId:', userId);
 //           await client.replyMessage(event.replyToken, {
 //             type: 'text',
 //             text: '診断を開始するには「診断」と入力してください。'
 //           });
 //           continue;
 //         }
+
+//         console.log('✅ セッション確認OK:', session);
 
 //         const question = DIAGNOSIS_QUESTIONS[questionIndex];
         
@@ -800,27 +695,45 @@
 //             session.answers[question.id].push(answer);
 //           }
 
+//           // 選択済み項目の表示
 //           const selectedOptions = question.options.filter(opt => 
 //             session.answers[question.id].includes(opt.value)
 //           );
 //           const selectedText = selectedOptions.length > 0 
 //             ? selectedOptions.map(opt => opt.text).join(', ') 
-//             : 'なし';
+//             : 'まだ選択されていません';
+
+//           // 未選択の項目でQuick Reply作成
+//           const remainingOptions = question.options.filter(opt => 
+//             !session.answers[question.id].includes(opt.value)
+//           );
+
+//           const quickReplyItems = [
+//             // 未選択の選択肢
+//             ...remainingOptions.map(opt => ({
+//               type: 'action',
+//               action: {
+//                 type: 'postback',
+//                 label: opt.text,
+//                 data: `dq=${questionIndex}&da=${opt.value}&multi=true`
+//               }
+//             })),
+//             // 次の質問へボタン
+//             {
+//               type: 'action',
+//               action: {
+//                 type: 'postback',
+//                 label: '次の質問へ →',
+//                 data: `dnext=${questionIndex}`
+//               }
+//             }
+//           ];
 
 //           const continueMessage = {
 //             type: 'text',
-//             text: `✅ 選択中: ${selectedText}\n\n他にも選択しますか？`,
+//             text: `✅ 選択済み: ${selectedText}\n\n下から追加で選択するか「次の質問へ」を押してください`,
 //             quickReply: {
-//               items: [
-//                 {
-//                   type: 'action',
-//                   action: {
-//                     type: 'postback',
-//                     label: '次の質問へ →',
-//                     data: `dnext=${questionIndex}`
-//                   }
-//                 }
-//               ]
+//               items: quickReplyItems
 //             }
 //           };
 
@@ -833,11 +746,11 @@
 //           const nextQuestionIndex = questionIndex + 1;
           
 //           if (nextQuestionIndex < DIAGNOSIS_QUESTIONS.length) {
-//             const nextMessage = createDiagnosisQuestionMessage(nextQuestionIndex);
+//             const nextMessage = createDiagnosisQuestionMessage(nextQuestionIndex, userId);
 //             await client.replyMessage(event.replyToken, nextMessage);
-//             continue; // ← 重要：処理を終了
+//             continue;
 //           } else {
-//             // 診断完了 - 結果表示のみ
+//             // 診断完了 - 結果表示
 //             const scores = calculateCareerScores(session.answers);
 //             const top3Careers = getTop3Careers(scores);
 //             const resultMessage = createCareerResultMessage(top3Careers);
@@ -845,7 +758,7 @@
 //             diagnosisSessions.delete(userId);
             
 //             await client.replyMessage(event.replyToken, resultMessage);
-//             continue; // ← 重要：処理を終了
+//             continue;
 //           }
 //         }
 //       }
@@ -856,7 +769,7 @@
 //         const nextQuestionIndex = questionIndex + 1;
         
 //         if (nextQuestionIndex < DIAGNOSIS_QUESTIONS.length) {
-//           const nextMessage = createDiagnosisQuestionMessage(nextQuestionIndex);
+//           const nextMessage = createDiagnosisQuestionMessage(nextQuestionIndex, userId);
 //           await client.replyMessage(event.replyToken, nextMessage);
 //         } else {
 //           const session = diagnosisSessions.get(userId);
@@ -879,7 +792,6 @@
 // app.listen(port, () => {
 //   console.log(`✅ 本番Bot起動完了 on port ${port}`);
 // });
-
 
 
 
@@ -1339,7 +1251,7 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
         {
           type: 'box',
           layout: 'vertical',
-          contents: question.options.map((option, index) => ({
+          contents: question.options.map((option) => ({
             type: 'button',
             action: {
               type: 'postback',
@@ -1549,10 +1461,14 @@ app.post('/webhook', async (req, res) => {
 
       // 診断の回答処理
       if (event.type === 'postback' && event.postback.data.startsWith('dq=')) {
+        console.log('🔍 受信したpostback data:', event.postback.data);
+        
         const data = new URLSearchParams(event.postback.data);
         const questionIndex = parseInt(data.get('dq'));
         const answer = data.get('da');
         const isMultiple = data.get('multi') === 'true';
+
+        console.log('🔍 解析結果:', { questionIndex, answer, isMultiple });
 
         const session = diagnosisSessions.get(userId);
         if (!session) {
