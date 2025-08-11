@@ -1314,16 +1314,72 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
 
     console.log('🔍 quickReplyItems作成完了:', quickReplyItems.length);
 
-    const quickReplyMessage = {
-      type: 'text',
-      text: `🎯 質問${questionIndex + 1}/8: ${question.text}\n\n✅ 選択済み: ${selectedText}`,
+    // FlexMessage風のヘッダー + Quick Reply
+    const flexWithQuickReply = {
+      type: 'flex',
+      altText: question.text,
+      contents: {
+        type: 'bubble',
+        size: 'kilo',
+        header: {
+          type: 'box',
+          layout: 'vertical',
+          contents: [
+            {
+              type: 'text',
+              text: `🎯 質問${questionIndex + 1}/8`,
+              weight: 'bold',
+              size: 'lg',
+              color: '#ffffff',
+              align: 'center'
+            }
+          ],
+          backgroundColor: '#1563f8',
+          paddingAll: 'lg'
+        },
+        body: {
+          type: 'box',
+          layout: 'vertical',
+          contents: [
+            {
+              type: 'text',
+              text: question.text,
+              weight: 'bold',
+              size: 'md',
+              wrap: true,
+              color: '#333333'
+            },
+            {
+              type: 'separator',
+              margin: 'lg'
+            },
+            {
+              type: 'text',
+              text: `✅ 選択済み: ${selectedText}`,
+              size: 'sm',
+              color: '#666666',
+              wrap: true,
+              margin: 'lg'
+            },
+            {
+              type: 'text',
+              text: '下のボタンから選択してください',
+              size: 'sm',
+              color: '#888888',
+              align: 'center',
+              margin: 'md'
+            }
+          ],
+          paddingAll: 'lg'
+        }
+      },
       quickReply: {
         items: quickReplyItems
       }
     };
 
-    console.log('✅ Quick Replyメッセージ作成完了');
-    return quickReplyMessage;
+    console.log('✅ FlexMessage + Quick Reply作成完了');
+    return flexWithQuickReply;
   }
   
   console.log('🔄 単一選択のFlexMessage作成中...');
