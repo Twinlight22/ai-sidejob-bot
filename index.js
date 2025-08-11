@@ -883,6 +883,7 @@
 
 
 
+
 // 必要なモジュールをインポート
 const express = require('express');
 const { Client } = require('@line/bot-sdk');
@@ -1250,10 +1251,16 @@ function getTop3Careers(scores) {
 
 // 診断開始
 function startCareerDiagnosis(userId) {
-  diagnosisSessions.set(userId, {
+  console.log('🚀 診断開始 - userId:', userId);
+  
+  const sessionData = {
     currentQuestion: 0,
     answers: {}
-  });
+  };
+  
+  diagnosisSessions.set(userId, sessionData);
+  console.log('💾 セッション保存完了:', sessionData);
+  console.log('💾 保存後のセッション一覧:', Array.from(diagnosisSessions.keys()));
   
   return createDiagnosisQuestionMessage(0, userId);
 }
@@ -1551,14 +1558,21 @@ app.post('/webhook', async (req, res) => {
 
       // 診断の回答処理
       if (event.type === 'postback' && event.postback.data.startsWith('dq=')) {
+        console.log('🔍 ポストバック受信:', event.postback.data);
+        console.log('🔍 userId:', userId);
+        console.log('🔍 全sessions:', Array.from(diagnosisSessions.keys()));
+        
         const data = new URLSearchParams(event.postback.data);
         const questionIndex = parseInt(data.get('dq'));
         const answer = data.get('da');
         const isMultiple = data.get('multi') === 'true';
 
         const session = diagnosisSessions.get(userId);
+        console.log('🔍 取得したsession:', session);
+        
         if (!session) {
           console.log('⚠️ セッションが見つかりません。userId:', userId);
+          console.log('⚠️ 保存されているセッション一覧:', diagnosisSessions);
           await client.replyMessage(event.replyToken, {
             type: 'text',
             text: '診断を開始するには「診断」と入力してください。'
