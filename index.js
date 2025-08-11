@@ -1173,6 +1173,8 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
   const question = DIAGNOSIS_QUESTIONS[questionIndex];
   const session = diagnosisSessions.get(userId);
   
+  console.log(`🔍 質問${questionIndex + 1}: type=${question.type}, id=${question.id}`);
+  
   // 複数選択の場合は最初からQuick Replyで表示
   if (question.type === 'multiple') {
     const selectedOptions = session?.answers[question.id] || [];
@@ -1185,7 +1187,7 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
     );
 
     const quickReplyItems = [
-      ...remainingOptions.map(opt => ({
+      ...remainingOptions.slice(0, 12).map(opt => ({
         type: 'action',
         action: {
           type: 'postback',
