@@ -1978,37 +1978,11 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
   
   console.log(`🔍 質問${questionIndex + 1}: type=${question.type}, id=${question.id}`);
   
-  // 複数選択の場合は最初からQuick Replyで表示
+  // 複数選択の場合は選択状態を見える化したFlexMessage
   if (question.type === 'multiple') {
     const selectedOptions = session?.answers[question.id] || [];
-    const selectedText = selectedOptions.length > 0 
-      ? question.options.filter(opt => selectedOptions.includes(opt.value)).map(opt => opt.text).join(', ')
-      : 'まだ選択されていません';
-
-    const remainingOptions = question.options.filter(opt => 
-      !selectedOptions.includes(opt.value)
-    );
-
-    const quickReplyItems = [
-      ...remainingOptions.slice(0, 12).map(opt => ({
-        type: 'action',
-        action: {
-          type: 'postback',
-          label: opt.text,
-          data: `dq=${questionIndex}&da=${opt.value}&multi=true`
-        }
-      })),
-      {
-        type: 'action',
-        action: {
-          type: 'postback',
-          label: '次の質問へ →',
-          data: `dnext=${questionIndex}`
-        }
-      }
-    ];
-
-    // FlexMessage + Quick Replyの組み合わせ
+    
+    // FlexMessage形式で選択状態を表示
     const contents = {
       type: 'bubble',
       size: 'giga',
@@ -2045,33 +2019,52 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
             margin: 'lg'
           },
           {
-            type: 'text',
-            text: `✅ 選択済み: ${selectedText}`,
-            size: 'sm',
-            color: '#666666',
-            wrap: true,
-            margin: 'lg'
-          },
-          {
-            type: 'text',
-            text: '💡 下のボタンから選択してください',
-            size: 'xs',
-            color: '#888888',
-            align: 'center',
-            margin: 'lg'
+            type: 'box',
+            layout: 'vertical',
+            contents: question.options.map((option) => {
+              const isSelected = selectedOptions.includes(option.value);
+              return {
+                type: 'button',
+                action: {
+                  type: 'postback',
+                  label: isSelected ? `✅ ${option.text}` : option.text,
+                  data: `dq=${questionIndex}&da=${option.value}&multi=true`
+                },
+                style: 'primary',
+                color: isSelected ? '#1e90ff' : '#00bfff',
+                margin: 'sm',
+                height: 'sm'
+              };
+            }),
+            margin: 'lg',
+            spacing: 'sm'
           }
         ],
         paddingAll: 'lg'
+      },
+      footer: {
+        type: 'box',
+        layout: 'vertical',
+        contents: [
+          {
+            type: 'button',
+            action: {
+              type: 'postback',
+              label: '次の質問へ →',
+              data: `dnext=${questionIndex}`
+            },
+            style: 'secondary',
+            height: 'sm'
+          }
+        ],
+        paddingAll: 'sm'
       }
     };
 
     return {
       type: 'flex',
       altText: question.text,
-      contents,
-      quickReply: {
-        items: quickReplyItems
-      }
+      contents
     };
   }
   
