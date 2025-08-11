@@ -1,4 +1,5 @@
-// src/diagnosis/DiagnosisPage.tsx
+
+
 
 import React from "react";
 

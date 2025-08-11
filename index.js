@@ -1,227 +1,4 @@
-// // index.js
-// require('dotenv').config();
-// const express = require('express');
-// const { Client, middleware } = require('@line/bot-sdk');
 
-// const config = {
-//   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
-//   channelSecret: process.env.LINE_CHANNEL_SECRET,
-// };
-
-// const client = new Client(config);
-// const app = express();
-
-// // 🚫 middleware(config)より前に app.use(express.json()) を絶対に書かない！
-
-// // ✅ Webhookエンドポイント（署名検証込み）
-// app.post('/webhook', middleware(config), async (req, res) => {
-//   try {
-//     const results = await Promise.all(req.body.events.map(async (event) => {
-//       if (event.type === 'message' && event.message.type === 'text') {
-//         if (event.message.text === '診断') {
-//           await client.replyMessage(event.replyToken, {
-//             type: 'text',
-//             text: '診断を開始します！',
-//           });
-//         }
-//       }
-//       return Promise.resolve(null);
-//     }));
-//     res.json(results);
-//   } catch (err) {
-//     console.error('❌ Webhook Error:', err);
-//     res.status(500).end();
-//   }
-// });
-
-// // ✅ ポート指定（Render環境では PORT を使う）
-// const port = process.env.PORT || 3000;
-// app.listen(port, () => {
-//   console.log(`✅ 副業Bot起動完了 on port ${port}`);
-// });
-
-
-
-
-
-// // index.js
-// require('dotenv').config();
-// const express = require('express');
-// const { Client, middleware } = require('@line/bot-sdk');
-
-// const config = {
-//   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
-//   channelSecret: process.env.LINE_CHANNEL_SECRET,
-// };
-
-// const client = new Client(config);
-// const app = express();
-
-// async function handleEvent(event) {
-//   if (event.type !== 'message' || event.message.type !== 'text') {
-//     return Promise.resolve(null);
-//   }
-
-//   if (event.message.text === '診断') {
-//     try {
-//       await client.replyMessage(event.replyToken, {
-//         type: 'text',
-//         text: 'Q1：副業に使える時間はどのくらい？',
-//         quickReply: {
-//           items: [
-//             {
-//               type: 'action',
-//               action: {
-//                 type: 'message',
-//                 label: '毎日1時間',
-//                 text: '毎日1時間'
-//               }
-//             },
-//             {
-//               type: 'action',
-//               action: {
-//                 type: 'message',
-//                 label: '週2〜3回',
-//                 text: '週2〜3回'
-//               }
-//             }
-//           ]
-//         }
-//       });
-//     } catch (err) {
-//       console.error('❌ replyMessageでエラー:', err.originalError || err.message || err);
-//     }
-
-//     return Promise.resolve(null);
-//   }
-
-//   return Promise.resolve(null);
-// }
-
-// app.post('/webhook', middleware(config), async (req, res) => {
-//   try {
-//     const results = await Promise.all(req.body.events.map(handleEvent));
-//     res.json(results);
-//   } catch (err) {
-//     console.error('❌ Webhook handler error:', err.message || err);
-//     res.status(500).end();
-//   }
-// });
-
-// const port = process.env.PORT || 3000;
-// app.listen(port, () => {
-//   console.log(`✅ 本番Bot起動完了 on port ${port}`);
-// });
-
-
-
-
-
-// // // index.js
-// require('dotenv').config();
-// const express = require('express');
-// const { Client /* , middleware */ } = require('@line/bot-sdk');
-
-// const config = {
-//   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
-//   channelSecret: process.env.LINE_CHANNEL_SECRET,
-// };
-
-// // 🔍 .env 読み込み確認
-// console.log('🧪 ACCESS_TOKEN:', config.channelAccessToken?.slice(0, 10) || 'undefined');
-// console.log('🧪 CHANNEL_SECRET:', config.channelSecret?.slice(0, 10) || 'undefined');
-
-// const client = new Client(config);
-// const app = express();
-
-// // リクエスト受信ログ（middlewareより前に確認）
-// app.use((req, res, next) => {
-//   console.log(`🔔 リクエスト受信: ${req.method} ${req.url}`);
-//   next();
-// });
-
-// // JSONボディを使えるように（middleware削除中なので必要）
-// // app.use(express.json());
-
-// // // ✅ Webhook受信確認用エンドポイント（middlewareなし）
-// // app.post('/webhook', async (req, res) => {
-// //   console.log('📩 Webhookリクエストが届きました！');
-// //   console.log('🧾 リクエストボディ:', JSON.stringify(req.body, null, 2));
-
-// //   // 簡易応答
-// //   res.sendStatus(200);
-
-// //   // もしイベントあれば処理（簡易版）
-// //   if (Array.isArray(req.body.events)) {
-// //     for (const event of req.body.events) {
-// //       if (event.type === 'message' && event.message.type === 'text') {
-// //         const userMessage = event.message.text;
-// //         console.log('💬 ユーザーの入力:', userMessage);
-
-// //         if (userMessage === '診断') {
-// //           await client.replyMessage(event.replyToken, {
-// //             type: 'text',
-// //             text: 'Q1：副業に使える時間はどのくらい？',
-// //             quickReply: {
-// //               items: [
-// //                 {
-// //                   type: 'action',
-// //                   action: {
-// //                     type: 'message',
-// //                     label: '毎日1時間',
-// //                     text: '毎日1時間',
-// //                   },
-// //                 },
-// //                 {
-// //                   type: 'action',
-// //                   action: {
-// //                     type: 'message',
-// //                     label: '週2〜3回',
-// //                     text: '週2〜3回',
-// //                   },
-// //                 },
-// //               ],
-// //             },
-// //           });
-// //         }
-// //       }
-// //     }
-// //   }
-// // });
-
-// // // ポート指定
-// // const port = process.env.PORT || 3000;
-// // app.listen(port, () => {
-// //   console.log(`✅ 本番Bot起動完了 on port ${port}`);
-// // });
-
-
-
-
-
-// // JSONボディを使えるように（middleware削除中なので必要）
-// app.use(express.json());
-
-// // ===========================================
-// // 副業診断システム - 完全版
-// // ===========================================
-
-// // 診断データ構造
-// const CAREERS = {
-//   '物販': { name: '物販', difficulty: '★★☆', earning: '★★★', description: 'Amazon、メルカリなどでの商品販売' },
-//   'ライティング': { name: 'ライティング', difficulty: '★☆☆', earning: '★★☆', description: '記事執筆・コンテンツ作成' },
-//   'ブログ運営': { name: 'ブログ運営', difficulty: '★★☆', earning: '★★☆', description: '個人ブログでの収益化' },
-//   'SNS運用': { name: 'SNS運用代行', difficulty: '★★☆', earning: '★★★', description: '企業のSNSアカウント運用' },
-//   'スキル販売': { name: 'スキル販売', difficulty: '★☆☆', earning: '★★☆', description: 'ココナラ等でのスキル提供' },
-//   'デザイン': { name: 'デザイン', difficulty: '★★★', earning: '★★★', description: 'ロゴ・バナー等のデザイン制作' },
-//   'サムネイル・バナー制作': { name: 'サムネイル・バナー制作', difficulty: '★★☆', earning: '★★☆', description: 'YouTube等のサムネイル制作' },
-//   '画像生成': { name: '画像生成', difficulty: '★★☆', earning: '★★☆', description: 'AIを使った画像制作・販売' },
-//   '動画編集': { name: '動画編集', difficulty: '★★★', earning: '★★★', description: 'YouTube・企業動画の編集' },
-//   '顔出し動画作成': { name: '顔出し動画作成', difficulty: '★★★', earning: '★★★', description: '教育・エンタメ動画の制作' },
-//   '音声編集': { name: '音声編集', difficulty: '★★☆', earning: '★★☆', description: 'ポッドキャスト・音声コンテンツ制作' },
-//   'Web制作': { name: 'HTML/CSS', difficulty: '★★★', earning: '★★★', description: 'ウェブサイト制作・コーディング' },
-//   'プログラミング': { name: 'プログラミング', difficulty: '★★★★', earning: '★★★★', description: 'アプリ・システム開発' }
-// };
 
 // // 質問データ
 // const DIAGNOSIS_QUESTIONS = [
@@ -981,7 +758,7 @@
 
 //         if (userMessage === '診断' || userMessage === '副業診断' || userMessage === '適職診断') {
 //           const message = startCareerDiagnosis(userId);
-//            await client.replyMessage(event.replyToken, message);
+//           await client.replyMessage(event.replyToken, message);
 //           continue;
 //         }
 //       }
@@ -990,32 +767,6 @@
 //       if (event.type === 'postback' && event.postback.data === 'diagnosis_restart') {
 //         const message = startCareerDiagnosis(userId);
 //         await client.replyMessage(event.replyToken, message);
-//         continue;
-//       }
-
-//       // 決済開始の処理
-//       if (event.type === 'postback' && event.postback.data === 'start_payment') {
-//         // ここでKOMOJU決済処理を呼び出す
-//         const paymentUrl = 'https://komoju.com/sessions/your-payment-session-id'; // 実際の決済URL
-        
-//         const paymentMessage = {
-//           type: 'text',
-//           text: '💳 決済ページに移動します...',
-//           quickReply: {
-//             items: [
-//               {
-//                 type: 'action',
-//                 action: {
-//                   type: 'uri',
-//                   label: '💳 決済ページを開く',
-//                   uri: paymentUrl
-//                 }
-//               }
-//             ]
-//           }
-//         };
-        
-//         await client.replyMessage(event.replyToken, paymentMessage);
 //         continue;
 //       }
 
@@ -1086,16 +837,14 @@
 //             await client.replyMessage(event.replyToken, nextMessage);
 //             continue; // ← 重要：処理を終了
 //           } else {
-//             // 診断完了 - 結果表示と決済確認を両方送信
+//             // 診断完了 - 結果表示のみ
 //             const scores = calculateCareerScores(session.answers);
 //             const top3Careers = getTop3Careers(scores);
 //             const resultMessage = createCareerResultMessage(top3Careers);
-//             const paymentConfirmMessage = createPaymentConfirmationMessage();
             
 //             diagnosisSessions.delete(userId);
             
-//             // 2つのメッセージを連続で送信
-//             await client.replyMessage(event.replyToken, [resultMessage, paymentConfirmMessage]);
+//             await client.replyMessage(event.replyToken, resultMessage);
 //             continue; // ← 重要：処理を終了
 //           }
 //         }
@@ -1114,12 +863,10 @@
 //           const scores = calculateCareerScores(session.answers);
 //           const top3Careers = getTop3Careers(scores);
 //           const resultMessage = createCareerResultMessage(top3Careers);
-//           const paymentConfirmMessage = createPaymentConfirmationMessage();
           
 //           diagnosisSessions.delete(userId);
           
-//           // 2つのメッセージを連続で送信
-//           await client.replyMessage(event.replyToken, [resultMessage, paymentConfirmMessage]);
+//           await client.replyMessage(event.replyToken, resultMessage);
 //         }
 //         continue;
 //       }
@@ -1508,12 +1255,13 @@ function startCareerDiagnosis(userId) {
     answers: {}
   });
   
-  return createDiagnosisQuestionMessage(0);
+  return createDiagnosisQuestionMessage(0, userId);
 }
 
-// FlexMessage形式の質問メッセージ（超カッコいい！）
-function createDiagnosisQuestionMessage(questionIndex) {
+// FlexMessage形式の質問メッセージ（選択状態見える化対応！）
+function createDiagnosisQuestionMessage(questionIndex, userId) {
   const question = DIAGNOSIS_QUESTIONS[questionIndex];
+  const session = diagnosisSessions.get(userId);
   
   const contents = {
     type: 'bubble',
@@ -1527,7 +1275,7 @@ function createDiagnosisQuestionMessage(questionIndex) {
           text: `🎯 質問${questionIndex + 1}/8`,
           weight: 'bold',
           size: 'lg',
-          color: '#5ce1e6',
+          color: '#0000ff',
           align: 'center'
         }
       ],
@@ -1553,20 +1301,25 @@ function createDiagnosisQuestionMessage(questionIndex) {
         {
           type: 'box',
           layout: 'vertical',
-          contents: question.options.map((option, index) => ({
-            type: 'button',
-            action: {
-              type: 'postback',
-              label: option.text,
-              data: question.type === 'multiple' 
-                ? `dq=${questionIndex}&da=${option.value}&multi=true`
-                : `dq=${questionIndex}&da=${option.value}`
-            },
-            style: 'primary',
-            color: '#0cc0df',
-            margin: 'sm',
-            height: 'sm'
-          })),
+          contents: question.options.map((option, index) => {
+            // 選択済みかどうかをチェック
+            const isSelected = session?.answers[question.id]?.includes(option.value);
+            
+            return {
+              type: 'button',
+              action: {
+                type: 'postback',
+                label: isSelected ? `✅ ${option.text}` : option.text,
+                data: question.type === 'multiple' 
+                  ? `dq=${questionIndex}&da=${option.value}&multi=true`
+                  : `dq=${questionIndex}&da=${option.value}`
+              },
+              style: 'primary',
+              color: isSelected ? '#1e90ff' : '#00bfff', // 選択済みは濃い青、未選択は明るい青
+              margin: 'sm',
+              height: 'sm'
+            };
+          }),
           margin: 'lg',
           spacing: 'sm'
         }
@@ -1596,7 +1349,7 @@ function createDiagnosisQuestionMessage(questionIndex) {
   };
 }
 
-// 結果表示メッセージ作成（超豪華！）
+// 結果表示メッセージ作成（色統一版！）
 function createCareerResultMessage(top3Careers) {
   const contents = {
     type: 'bubble',
@@ -1610,19 +1363,19 @@ function createCareerResultMessage(top3Careers) {
           text: '🎉 適職診断結果',
           weight: 'bold',
           size: 'xl',
-          color: '#5ce1e6',
+          color: '#0000ff',
           align: 'center'
         },
         {
           type: 'text',
           text: 'あなたにピッタリの副業TOP3',
           size: 'md',
-          color: '#5ce1e6',
+          color: '#0000ff',
           align: 'center',
           margin: 'sm'
         }
       ],
-      backgroundColor: '#A0D8D8',
+      backgroundColor: '#1563f8', // 質問と同じ青に統一！
       paddingAll: 'lg'
     },
     body: {
@@ -1745,173 +1498,7 @@ function createCareerResultMessage(top3Careers) {
   };
 }
 
-// 決済前確認メッセージ作成
-function createPaymentConfirmationMessage() {
-  const contents = {
-    type: 'bubble',
-    size: 'kilo',
-    header: {
-      type: 'box',
-      layout: 'vertical',
-      contents: [
-        {
-          type: 'text',
-          text: '💰 プレミアム診断',
-          weight: 'bold',
-          size: 'lg',
-          color: '#5ce1e6',
-          align: 'center'
-        }
-      ],
-      backgroundColor: '#1563f8',
-      paddingAll: 'lg'
-    },
-    body: {
-      type: 'box',
-      layout: 'vertical',
-      contents: [
-        {
-          type: 'text',
-          text: 'より詳細な診断をご希望ですか？',
-          weight: 'bold',
-          size: 'md',
-          wrap: true,
-          color: '#333333',
-          align: 'center'
-        },
-        {
-          type: 'separator',
-          margin: 'lg'
-        },
-        {
-          type: 'box',
-          layout: 'vertical',
-          contents: [
-            {
-              type: 'text',
-              text: '📋 プレミアム版の特徴',
-              weight: 'bold',
-              size: 'sm',
-              color: '#333333',
-              margin: 'lg'
-            },
-            {
-              type: 'text',
-              text: '• AI副業診断（全13職種詳細表示）',
-              size: 'sm',
-              color: '#666666',
-              margin: 'sm'
-            },
-            {
-              type: 'text',
-              text: '• 診断の採点内容',
-              size: 'sm',
-              color: '#666666',
-              margin: 'xs'
-            },
-            {
-              type: 'text',
-              text: '• 個別アドバイス付き',
-              size: 'sm',
-              color: '#666666',
-              margin: 'xs'
-            }
-          ]
-        },
-        {
-          type: 'separator',
-          margin: 'lg'
-        },
-        {
-          type: 'text',
-          text: '💸 料金：1980円（税込）',
-          weight: 'bold',
-          size: 'md',
-          color: '#ff6b35',
-          align: 'center',
-          margin: 'lg'
-        }
-      ],
-      paddingAll: 'lg'
-    },
-    footer: {
-      type: 'box',
-      layout: 'vertical',
-      contents: [
-        {
-          type: 'text',
-          text: '⚠️ お支払い前に必ずご確認ください',
-          size: 'xs',
-          color: '#ff6b35',
-          align: 'center',
-          weight: 'bold'
-        },
-        {
-          type: 'box',
-          layout: 'horizontal',
-          contents: [
-            {
-              type: 'button',
-              action: {
-                type: 'uri',
-                label: '📄 特商法',
-                uri: 'https://twinlight.netlify.app/tokushoho'
-              },
-              style: 'secondary',
-              height: 'sm',
-              flex: 1
-            },
-            {
-              type: 'button',
-              action: {
-                type: 'uri',
-                label: '🔒 プライバシー',
-                uri: 'https://twinlight.netlify.app/privacy-policy'
-              },
-              style: 'secondary',
-              height: 'sm',
-              flex: 1
-            }
-          ],
-          spacing: 'sm',
-          margin: 'md'
-        },
-        {
-          type: 'button',
-          action: {
-            type: 'postback',
-            label: '💳 プレミアム診断を購入',
-            data: 'start_payment'
-          },
-          style: 'primary',
-          color: '#ff6b35',
-          height: 'sm',
-          margin: 'md'
-        },
-        {
-          type: 'button',
-          action: {
-            type: 'postback',
-            label: '🔄 無料版で再診断',
-            data: 'diagnosis_restart'
-          },
-          style: 'link',
-          height: 'sm',
-          margin: 'sm'
-        }
-      ],
-      paddingAll: 'lg'
-    }
-  };
-
-  return {
-    type: 'flex',
-    altText: 'プレミアム診断のご案内',
-    contents
-  };
-}
-
-// ✅ Webhook受信確認用エンドポイント（完全版に置き換え！）
+// ✅ Webhook受信確認用エンドポイント（選択済みボタン対応完全版！）
 app.post('/webhook', async (req, res) => {
   console.log('📩 Webhookリクエストが届きました！');
   console.log('🧾 リクエストボディ:', JSON.stringify(req.body, null, 2));
@@ -1973,31 +1560,9 @@ app.post('/webhook', async (req, res) => {
             session.answers[question.id].push(answer);
           }
 
-          const selectedOptions = question.options.filter(opt => 
-            session.answers[question.id].includes(opt.value)
-          );
-          const selectedText = selectedOptions.length > 0 
-            ? selectedOptions.map(opt => opt.text).join(', ') 
-            : 'なし';
-
-          const continueMessage = {
-            type: 'text',
-            text: `✅ 選択中: ${selectedText}\n\n他にも選択しますか？`,
-            quickReply: {
-              items: [
-                {
-                  type: 'action',
-                  action: {
-                    type: 'postback',
-                    label: '次の質問へ →',
-                    data: `dnext=${questionIndex}`
-                  }
-                }
-              ]
-            }
-          };
-
-          await client.replyMessage(event.replyToken, continueMessage);
+          // 🔥 選択状態が見えるボタンで再送信！
+          const updatedMessage = createDiagnosisQuestionMessage(questionIndex, userId);
+          await client.replyMessage(event.replyToken, updatedMessage);
           continue;
         } else {
           // 単一選択の場合
@@ -2006,11 +1571,11 @@ app.post('/webhook', async (req, res) => {
           const nextQuestionIndex = questionIndex + 1;
           
           if (nextQuestionIndex < DIAGNOSIS_QUESTIONS.length) {
-            const nextMessage = createDiagnosisQuestionMessage(nextQuestionIndex);
+            const nextMessage = createDiagnosisQuestionMessage(nextQuestionIndex, userId);
             await client.replyMessage(event.replyToken, nextMessage);
-            continue; // ← 重要：処理を終了
+            continue;
           } else {
-            // 診断完了 - 結果表示のみ
+            // 診断完了 - 結果表示
             const scores = calculateCareerScores(session.answers);
             const top3Careers = getTop3Careers(scores);
             const resultMessage = createCareerResultMessage(top3Careers);
@@ -2018,7 +1583,7 @@ app.post('/webhook', async (req, res) => {
             diagnosisSessions.delete(userId);
             
             await client.replyMessage(event.replyToken, resultMessage);
-            continue; // ← 重要：処理を終了
+            continue;
           }
         }
       }
@@ -2029,7 +1594,7 @@ app.post('/webhook', async (req, res) => {
         const nextQuestionIndex = questionIndex + 1;
         
         if (nextQuestionIndex < DIAGNOSIS_QUESTIONS.length) {
-          const nextMessage = createDiagnosisQuestionMessage(nextQuestionIndex);
+          const nextMessage = createDiagnosisQuestionMessage(nextQuestionIndex, userId);
           await client.replyMessage(event.replyToken, nextMessage);
         } else {
           const session = diagnosisSessions.get(userId);
