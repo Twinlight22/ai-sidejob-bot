@@ -1270,8 +1270,17 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
   const question = DIAGNOSIS_QUESTIONS[questionIndex];
   const session = diagnosisSessions.get(userId);
   
+  console.log('🔍 createDiagnosisQuestionMessage - questionIndex:', questionIndex);
+  console.log('🔍 createDiagnosisQuestionMessage - question.id:', question.id);
+  console.log('🔍 createDiagnosisQuestionMessage - question.type:', question.type);
+  console.log('🔍 createDiagnosisQuestionMessage - question.text:', question.text);
+  console.log('🔍 createDiagnosisQuestionMessage - userId:', userId);
+  console.log('🔍 createDiagnosisQuestionMessage - session:', session);
+  
   // 複数選択の場合は最初からQuick Replyで表示
   if (question.type === 'multiple') {
+    console.log('🔄 複数選択のQuick Reply作成中...');
+    
     const selectedOptions = session?.answers[question.id] || [];
     const selectedText = selectedOptions.length > 0 
       ? question.options.filter(opt => selectedOptions.includes(opt.value)).map(opt => opt.text).join(', ')
@@ -1281,8 +1290,11 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
       !selectedOptions.includes(opt.value)
     );
 
+    console.log('🔍 selectedOptions:', selectedOptions);
+    console.log('🔍 remainingOptions:', remainingOptions.length);
+
     const quickReplyItems = [
-      ...remainingOptions.map(opt => ({
+      ...remainingOptions.slice(0, 12).map(opt => ({  // 最大12個に制限
         type: 'action',
         action: {
           type: 'postback',
@@ -1300,14 +1312,21 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
       }
     ];
 
-    return {
+    console.log('🔍 quickReplyItems作成完了:', quickReplyItems.length);
+
+    const quickReplyMessage = {
       type: 'text',
       text: `🎯 質問${questionIndex + 1}/8\n${question.text}\n\n✅ 選択済み: ${selectedText}\n\n下から選択するか「次の質問へ」を押してください`,
       quickReply: {
         items: quickReplyItems
       }
     };
+
+    console.log('✅ Quick Replyメッセージ作成完了');
+    return quickReplyMessage;
   }
+  
+  console.log('🔄 単一選択のFlexMessage作成中...');
   
   // 単一選択の場合は従来通りFlexMessage
   const contents = {
@@ -1367,6 +1386,8 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
       paddingAll: 'lg'
     }
   };
+
+  console.log('✅ FlexMessage作成完了');
 
   return {
     type: 'flex',
@@ -1559,6 +1580,8 @@ app.post('/webhook', async (req, res) => {
       // 診断の回答処理
       if (event.type === 'postback' && event.postback.data.startsWith('dq=')) {
         console.log('🔍 ポストバック受信:', event.postback.data);
+        console.log('🔍 eventタイプ:', event.type);
+        console.log('🔍 イベント全体:', JSON.stringify(event, null, 2));
         console.log('🔍 userId:', userId);
         console.log('🔍 全sessions:', Array.from(diagnosisSessions.keys()));
         
@@ -1647,8 +1670,18 @@ app.post('/webhook', async (req, res) => {
           const nextQuestionIndex = questionIndex + 1;
           
           if (nextQuestionIndex < DIAGNOSIS_QUESTIONS.length) {
-            const nextMessage = createDiagnosisQuestionMessage(nextQuestionIndex, userId);
-            await client.replyMessage(event.replyToken, nextMessage);
+            console.log('🔄 次の質問に進みます:', nextQuestionIndex);
+            try {
+              const nextMessage = createDiagnosisQuestionMessage(nextQuestionIndex, userId);
+              console.log('✅ 次の質問メッセージ作成完了');
+              await client.replyMessage(event.replyToken, nextMessage);
+            } catch (error) {
+              console.error('❌ 次の質問メッセージ作成エラー:', error);
+              await client.replyMessage(event.replyToken, {
+                type: 'text',
+                text: 'エラーが発生しました。「診断」と入力して再開してください。'
+              });
+            }
             continue;
           } else {
             // 診断完了 - 結果表示
