@@ -2471,10 +2471,10 @@ app.post('/webhook', async (req, res) => {
           }
 
           // 軽量な確認メッセージのみ
-          const selectedCount = session.answers[question.id].length;
+          const optionText = question.options.find(opt => opt.value === answer)?.text || answer;
           const confirmMessage = {
             type: 'text',
-            text: `✅ ${selectedCount}個選択済み`
+            text: `✅ ${optionText}選択済み`
           };
 
           await client.replyMessage(event.replyToken, confirmMessage);
