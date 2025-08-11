@@ -1316,7 +1316,7 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
 
     const quickReplyMessage = {
       type: 'text',
-      text: `🎯 質問${questionIndex + 1}/8\n${question.text}\n\n✅ 選択済み: ${selectedText}\n\n下から選択するか「次の質問へ」を押してください`,
+      text: `🎯 質問${questionIndex + 1}/8: ${question.text}\n\n✅ 選択済み: ${selectedText}`,
       quickReply: {
         items: quickReplyItems
       }
@@ -1665,9 +1665,13 @@ app.post('/webhook', async (req, res) => {
           continue;
         } else {
           // 単一選択の場合
+          console.log('🔄 単一選択の回答処理中...');
           session.answers[question.id] = answer;
+          console.log('💾 回答保存:', question.id, '=', answer);
+          console.log('💾 現在の回答状況:', session.answers);
           
           const nextQuestionIndex = questionIndex + 1;
+          console.log('🔄 次の質問インデックス:', nextQuestionIndex);
           
           if (nextQuestionIndex < DIAGNOSIS_QUESTIONS.length) {
             console.log('🔄 次の質問に進みます:', nextQuestionIndex);
