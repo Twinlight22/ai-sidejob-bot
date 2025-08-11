@@ -962,10 +962,8 @@ const DIAGNOSIS_QUESTIONS = [
       { text: 'Midjourney', value: 'midjourney' },
       { text: 'DALL·E 3', value: 'dalle3' },
       { text: 'Adobe Firefly', value: 'firefly' },
-      { text: 'Leonardo.Ai', value: 'leonardo' },
+      { text: 'Leonardo', value: 'leonardo' },
       { text: 'Runway', value: 'runway' },
-      { text: 'Pika Labs', value: 'pika' },
-      { text: 'D-ID', value: 'did' },
       { text: 'Whisper', value: 'whisper' },
       { text: 'Brew', value: 'brew' },
       { text: 'Canva', value: 'canva' },
@@ -1125,7 +1123,6 @@ function calculateCareerScores(answers) {
           scores['画像生成'] += 30;
           break;
         case 'runway':
-        case 'pika':
         case 'brew':
           scores['動画編集'] += 30;
           break;
@@ -1251,16 +1248,10 @@ function getTop3Careers(scores) {
 
 // 診断開始
 function startCareerDiagnosis(userId) {
-  console.log('🚀 診断開始 - userId:', userId);
-  
-  const sessionData = {
+  diagnosisSessions.set(userId, {
     currentQuestion: 0,
     answers: {}
-  };
-  
-  diagnosisSessions.set(userId, sessionData);
-  console.log('💾 セッション保存完了:', sessionData);
-  console.log('💾 保存後のセッション一覧:', Array.from(diagnosisSessions.keys()));
+  });
   
   return createDiagnosisQuestionMessage(0, userId);
 }
@@ -1270,17 +1261,8 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
   const question = DIAGNOSIS_QUESTIONS[questionIndex];
   const session = diagnosisSessions.get(userId);
   
-  console.log('🔍 createDiagnosisQuestionMessage - questionIndex:', questionIndex);
-  console.log('🔍 createDiagnosisQuestionMessage - question.id:', question.id);
-  console.log('🔍 createDiagnosisQuestionMessage - question.type:', question.type);
-  console.log('🔍 createDiagnosisQuestionMessage - question.text:', question.text);
-  console.log('🔍 createDiagnosisQuestionMessage - userId:', userId);
-  console.log('🔍 createDiagnosisQuestionMessage - session:', session);
-  
   // 複数選択の場合は最初からQuick Replyで表示
   if (question.type === 'multiple') {
-    console.log('🔄 複数選択のQuick Reply作成中...');
-    
     const selectedOptions = session?.answers[question.id] || [];
     const selectedText = selectedOptions.length > 0 
       ? question.options.filter(opt => selectedOptions.includes(opt.value)).map(opt => opt.text).join(', ')
@@ -1290,11 +1272,8 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
       !selectedOptions.includes(opt.value)
     );
 
-    console.log('🔍 selectedOptions:', selectedOptions);
-    console.log('🔍 remainingOptions:', remainingOptions.length);
-
     const quickReplyItems = [
-      ...remainingOptions.slice(0, 12).map(opt => ({  // 最大12個に制限
+      ...remainingOptions.map(opt => ({
         type: 'action',
         action: {
           type: 'postback',
@@ -1312,77 +1291,14 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
       }
     ];
 
-    console.log('🔍 quickReplyItems作成完了:', quickReplyItems.length);
-
-    // FlexMessage風のヘッダー + Quick Reply
-    const flexWithQuickReply = {
-      type: 'flex',
-      altText: question.text,
-      contents: {
-        type: 'bubble',
-        size: 'kilo',
-        header: {
-          type: 'box',
-          layout: 'vertical',
-          contents: [
-            {
-              type: 'text',
-              text: `🎯 質問${questionIndex + 1}/8`,
-              weight: 'bold',
-              size: 'lg',
-              color: '#ffffff',
-              align: 'center'
-            }
-          ],
-          backgroundColor: '#1563f8',
-          paddingAll: 'lg'
-        },
-        body: {
-          type: 'box',
-          layout: 'vertical',
-          contents: [
-            {
-              type: 'text',
-              text: question.text,
-              weight: 'bold',
-              size: 'md',
-              wrap: true,
-              color: '#333333'
-            },
-            {
-              type: 'separator',
-              margin: 'lg'
-            },
-            {
-              type: 'text',
-              text: `✅ 選択済み: ${selectedText}`,
-              size: 'sm',
-              color: '#666666',
-              wrap: true,
-              margin: 'lg'
-            },
-            {
-              type: 'text',
-              text: '下のボタンから選択してください',
-              size: 'sm',
-              color: '#888888',
-              align: 'center',
-              margin: 'md'
-            }
-          ],
-          paddingAll: 'lg'
-        }
-      },
+    return {
+      type: 'text',
+      text: `🎯 質問${questionIndex + 1}/8\n${question.text}\n\n✅ 選択済み: ${selectedText}\n\n下から選択するか「次の質問へ」を押してください`,
       quickReply: {
         items: quickReplyItems
       }
     };
-
-    console.log('✅ FlexMessage + Quick Reply作成完了');
-    return flexWithQuickReply;
   }
-  
-  console.log('🔄 単一選択のFlexMessage作成中...');
   
   // 単一選択の場合は従来通りFlexMessage
   const contents = {
@@ -1442,8 +1358,6 @@ function createDiagnosisQuestionMessage(questionIndex, userId) {
       paddingAll: 'lg'
     }
   };
-
-  console.log('✅ FlexMessage作成完了');
 
   return {
     type: 'flex',
@@ -1635,23 +1549,14 @@ app.post('/webhook', async (req, res) => {
 
       // 診断の回答処理
       if (event.type === 'postback' && event.postback.data.startsWith('dq=')) {
-        console.log('🔍 ポストバック受信:', event.postback.data);
-        console.log('🔍 eventタイプ:', event.type);
-        console.log('🔍 イベント全体:', JSON.stringify(event, null, 2));
-        console.log('🔍 userId:', userId);
-        console.log('🔍 全sessions:', Array.from(diagnosisSessions.keys()));
-        
         const data = new URLSearchParams(event.postback.data);
         const questionIndex = parseInt(data.get('dq'));
         const answer = data.get('da');
         const isMultiple = data.get('multi') === 'true';
 
         const session = diagnosisSessions.get(userId);
-        console.log('🔍 取得したsession:', session);
-        
         if (!session) {
           console.log('⚠️ セッションが見つかりません。userId:', userId);
-          console.log('⚠️ 保存されているセッション一覧:', diagnosisSessions);
           await client.replyMessage(event.replyToken, {
             type: 'text',
             text: '診断を開始するには「診断」と入力してください。'
@@ -1721,27 +1626,13 @@ app.post('/webhook', async (req, res) => {
           continue;
         } else {
           // 単一選択の場合
-          console.log('🔄 単一選択の回答処理中...');
           session.answers[question.id] = answer;
-          console.log('💾 回答保存:', question.id, '=', answer);
-          console.log('💾 現在の回答状況:', session.answers);
           
           const nextQuestionIndex = questionIndex + 1;
-          console.log('🔄 次の質問インデックス:', nextQuestionIndex);
           
           if (nextQuestionIndex < DIAGNOSIS_QUESTIONS.length) {
-            console.log('🔄 次の質問に進みます:', nextQuestionIndex);
-            try {
-              const nextMessage = createDiagnosisQuestionMessage(nextQuestionIndex, userId);
-              console.log('✅ 次の質問メッセージ作成完了');
-              await client.replyMessage(event.replyToken, nextMessage);
-            } catch (error) {
-              console.error('❌ 次の質問メッセージ作成エラー:', error);
-              await client.replyMessage(event.replyToken, {
-                type: 'text',
-                text: 'エラーが発生しました。「診断」と入力して再開してください。'
-              });
-            }
+            const nextMessage = createDiagnosisQuestionMessage(nextQuestionIndex, userId);
+            await client.replyMessage(event.replyToken, nextMessage);
             continue;
           } else {
             // 診断完了 - 結果表示
