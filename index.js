@@ -2470,14 +2470,9 @@ app.post('/webhook', async (req, res) => {
             session.answers[question.id].push(answer);
           }
 
-          // 軽量な確認メッセージのみ
-          const optionText = question.options.find(opt => opt.value === answer)?.text || answer;
-          const confirmMessage = {
-            type: 'text',
-            text: `✅ ${optionText}選択済み`
-          };
-
-          await client.replyMessage(event.replyToken, confirmMessage);
+          // 選択状態が見える新しいFlexMessageを再送信
+          const updatedMessage = createMultipleChoiceMessage(questionIndex, userId);
+          await client.replyMessage(event.replyToken, updatedMessage);
           continue;
         } else {
           // 単一選択の場合
